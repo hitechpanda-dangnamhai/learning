@@ -103,7 +103,75 @@ Cùng một Claude viết cả ba. Format cả ba đều nằm sẵn trong conte
 
 ⟹ Cấu trúc **mọc dần bằng kẻ ăn**, không ép một lần. Muốn ADR có `statement`? Cột **nullable** + cho `icp-wf load` **ăn** nó + view `adr_thieu_statement`. Cột rỗng ⟹ kẻ ăn **hỏng thấy được** ⟹ tự được điền.
 
-### 2.3 Tiêu chí vào `wf_object`: **cái gì bị gọi bằng TÊN**
+### 2.3 BUSINESS RULE — hai điểm mù là ảnh gương của nhau
+
+**Đo được:** DB sản phẩm đang chạy **814 ràng buộc** — **121 `CHECK`** (thật, đã loại 11 cái nằm trong comment) · 107 `FK` · 104 `UNIQUE` · 471 `NOT NULL`.
+
+121 cái `CHECK` đó **là business rule 100%**, không cái nào là kiến trúc:
+
+```sql
+CHECK (amount > 0)                                  -- tiền phải dương
+CHECK (available_qty >= 0)                          -- tồn kho không âm
+CHECK (avg_price >= min_price)                      -- luật giá
+CHECK (condition IN ('new','used','refurbished'))
+CHECK (fulfillment_type IN ('FBM','FBA'))
+CHECK (action IN ('delete','anonymize','restrict')) -- GDPR
+```
+
+**Và lý do của chúng không tồn tại ở đâu cả.** Truy `avg_price >= min_price`:
+- `ADR-032.md:14` — chỉ nhắc `avg_price` như **một dòng liệt kê trường**: *"Aggregates: `min_price`, `avg_price`, `max_price`…"*. **Không phải luật.**
+- Chính cái luật chỉ có ở **2 chỗ**: bản thân cái `CHECK` trong migration, và **`docs/archive-v1/02_DATA_MODEL.md:1192` — kho lưu trữ ĐÃ CHẾT**.
+
+| | **ADR** — 126 | **BUSINESS RULE** — 121 `CHECK` |
+|---|---|---|
+| Có **lý do** | ✅ có nhà (`docs/decisions/`), có trường `Rationale` | ❌ **KHÔNG CÓ NHÀ NÀO** |
+| Được **cưỡng chế** | ❌ **2,4%** từng đối chiếu code | ✅ **121/121 BẤT KHẢ VI PHẠM** |
+| Tuổi thọ | gần vĩnh viễn | **đổi theo thị trường** |
+| Chủ | kỹ sư | **nghiệp vụ** |
+
+> **ADR có lý do mà không có răng. Business rule có răng mà không có lý do.**
+> Hai điểm mù, **ảnh gương của nhau**.
+
+**⟹ `business_rule` trong DB KHÔNG phải để cưỡng chế** — Postgres đã cưỡng chế 121 cái, hoàn hảo, tốt hơn mọi ADR từng làm được.
+**Nó để cho 121 luật đang cưỡng chế đó một CÁI TÊN và một LÝ DO.**
+
+Và nó đẻ ra view **đối xứng** với `adr_mu`:
+
+```sql
+-- CHECK đang chạy trong DB mà KHÔNG business_rule nào nhận  →  hôm nay: 121/121
+CREATE VIEW check_khong_ai_giai_thich AS
+SELECT c.locator, c.raw_check
+FROM wf_db_constraint c
+WHERE NOT EXISTS (SELECT 1 FROM wf_citation ct JOIN wf_object o ON o.id=ct.to_id
+                  WHERE ct.locator=c.locator AND o.kind='business_rule');
+
+-- business_rule KHÔNG AI ÉP  →  luật nghiệp vụ đang trôi tự do, hôm nay VÔ HÌNH
+CREATE VIEW business_rule_khong_ai_ep AS
+SELECT o.ref, o.title FROM wf_object o
+WHERE o.kind='business_rule' AND o.meta->>'enforced_by' = 'nothing';
+```
+
+```sql
+-- business_rule BẮT BUỘC khai nó được ép bằng gì
+ALTER TABLE wf_object ADD CONSTRAINT br_phai_khai_enforced_by CHECK (
+  kind <> 'business_rule' OR
+  meta->>'enforced_by' IN ('db_check','db_fk','db_unique','db_not_null','code','test','nothing'));
+
+-- ảnh chụp ràng buộc DB thật, sinh từ scan migration (hoặc pg_constraint khi DB sống)
+CREATE TABLE wf_db_constraint (
+  locator   text PRIMARY KEY,        -- 'infra/migrations/V001__init.sql:214'
+  kind      text NOT NULL CHECK (kind IN ('check','fk','unique','not_null')),
+  raw_check text NOT NULL,           -- 'avg_price >= min_price'
+  scanned_at_commit text NOT NULL
+);
+```
+
+| Điểm mù | Hôm nay |
+|---|---|
+| **`adr_mu`** — có quyết định, **không biết code còn theo không** | **123/126** |
+| **`check_khong_ai_giai_thich`** — có cưỡng chế, **không biết vì sao** | **121/121** |
+
+### 2.4 Tiêu chí vào `wf_object`: **cái gì bị gọi bằng TÊN**
 
 Việc **duy nhất** của `wf_object` là **làm đích cho FK**. Nên tiêu chí không phải "nó có hỏng không" mà là **"có thứ gì gọi nó bằng tên không"**.
 
