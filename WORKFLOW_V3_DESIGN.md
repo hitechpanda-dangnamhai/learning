@@ -1,35 +1,93 @@
-# WORKFLOW V3 — THIẾT KẾ ĐẦY ĐỦ
+# WORKFLOW V3 — THIẾT KẾ ĐẦY ĐỦ (v3.2, product-first, MỘT doc thống nhất)
 
-> **Chủ thể:** một workflow MỚI để nâng cấp workflow của sicp (planner · coder · `CLAUDE.md` · memory · relay · wf-lock · gen-facts).
-> **Trạng thái:** THIẾT KẾ — chưa cắt slice. Mọi số đo kèm lệnh tái lập. Cái nào chưa đo, ghi "chưa đo".
-> Sinh 2026-07-16 sau ~7 vòng discuss với human. Các quyết định human chốt được đánh dấu **[HUMAN]**.
+> **TRỤC CHÍNH = SẢN PHẨM.** Đây là MỘT doc thống nhất (KHÔNG tách). §00 nêu sản phẩm + mô hình kiếm tiền + hào; §21–§22 chi tiết; §0–§20 là NỀN + DOGFOOD (workflow-sicp) dựng và validate chính engine của sản phẩm.
+> **Chủ thể:** sản phẩm *"proof-of-correctness cho code do AI sinh, trong phần mềm quản chế"* (§00). Workflow-sicp = bàn thử/dogfood phục vụ nó.
+> **Trạng thái:** THIẾT KẾ CHUẨN-HOÁ — chưa cắt slice. Số đo kèm lệnh tái lập; chưa đo ghi "chưa đo"; đã verify ghi "**đã verify**".
+> **Gốc:** 2026-07-16 (v3.0) → 2026-07-17 (v3.1: phản biện chuyên gia + verify Claude Code) → **2026-07-17 (v3.2: PRODUCT-FIRST, human trao TOÀN QUYỀN quyết định — mục tiêu KHÔNG-AI-BẮT-CHƯỚC + BÍ-MẬT-KHÔNG-KHÁM-PHÁ-ĐƯỢC + kiếm-tiền-thị-trường-CHƯA-CÓ).** `[HUMAN]` = human chốt · `[DECIDED]` = tôi quyết theo uỷ quyền.
+
+---
+
+## §00. SẢN PHẨM & KIẾM TIỀN — TRỤC CHÍNH [DECIDED — human trao toàn quyền 2026-07-17]
+
+**XÂY CÁI GÌ:** một dịch vụ **CHỨNG MINH code do agent sinh có thoả requirement không** — trong phần mềm **quản chế/an-toàn**. Vòng: requirement (EARS/bán-hình-thức) → **tự hình-thức-hoá** thành property (temporal-logic/SMT) → **chứng minh** code thoả (hoặc phản-chứng có counter-example) → **phát CHỨNG-CHỈ audit-grade, ký số**. Đây chính là chỗ R10 nói *"không ai vỡ khi rule sai nghĩa"* — và là nơi DUY NHẤT máy vá được: **ngách hình-thức-hoá-được.**
+
+**VÌ SAO BÂY GIỜ:** agent sinh code cấp-số-nhân ⟹ nút cổ chai dời từ *viết* sang **chứng minh code đúng**. Ngành quản chế **BẮT BUỘC** chứng nhận (DO-178C · ISO 26262 · IEC 62304) và **ghét** DOORS/Polarion (thủ công · không AI · không chứng minh). Không tool SDD/agent nào phát chứng-chỉ-đúng-đắn. **Lỗ trống × bắt buộc × trả cao.**
+
+**NGÁCH [DECIDED]: phần mềm an-toàn; vertical ĐẦU = ISO 26262 (automotive functional safety).**
+- Vì sao automotive trước: thị-trường-phần-mềm-hình-thức-hoá-được **LỚN NHẤT + bùng nổ** (ADAS · EV · software-defined-vehicle); nhiều **Tier-1/Tier-2** supplier ⟹ design-partner **tiếp cận được** (khác avionics do prime độc chiếm); MISRA-C + AUTOSAR đã **bán-hình-thức** (nửa đường tới property).
+- Engine **tổng quát hoá** sang họ IEC 61508 (26262 · 62304 · 50128 · DO-178C) — cùng cấu trúc safety-property + traceability ⟹ **hào cộng dồn qua cả họ chuẩn**, chỉ vào automotive TRƯỚC.
+- ⚠ Đây là **bet khởi đầu**, xoay được nếu design-partner ngon hơn xuất hiện ở vertical khác — nhưng khung (quản-chế × hình-thức-hoá-được × formal-moat) thì KHÔNG xoay.
+
+**MÔ HÌNH KIẾM TIỀN [DECIDED — thị trường CHƯA CÓ]:** KHÔNG bán ghế (seat) như DOORS. Bán **KẾT QUẢ chứng minh:**
+
+| Model | Bán gì | Vì sao "thị trường chưa có" |
+|---|---|---|
+| **1. Per-proof / per-verified-requirement** | trả tiền khi engine **CHỨNG MINH** một requirement được code thoả + phát chứng-chỉ vào safety-case | doanh thu **scale theo KHỐI LƯỢNG code AI sinh**, không theo headcount. Không ai định giá kiểu này vì **không sản xuất nổi proof tự động ở agent-scale** |
+| **2. Continuous certification (subscription)** | giữ safety-case **LUÔN TƯƠI**: agent đổi code → re-prove tự động → compliance không stale | RTM hiện tại = **snapshot + verify TAY** (big-bang cuối kỳ, đau). "Luôn-chứng-minh-được" là sản phẩm **chưa tồn tại** |
+| **3. Compliance-evidence package** | xuất bộ bằng-chứng-audit (proof + trace + counter-example log) nộp cơ quan chứng nhận | ngành PHẢI sản xuất cái này bằng tay — ta tự-động-hoá + chứng-minh-hoá nó |
+
+> Cả 3 model **được MỞ RA bởi năng lực kỹ thuật KHÓ** (chứng minh tự động). Đối thủ không định giá kiểu này được vì **không sản xuất nổi proof** — pricing-model là **hệ quả** của moat, không phải chiêu marketing.
+
+**HÀO — KHÔNG-AI-BẮT-CHƯỚC + BÍ-MẬT-KHÔNG-KHÁM-PHÁ (§22 chi tiết):**
+- **Bí mật KHÔNG phải "toán bí mật".** Toán **tái lập được** — hứa giấu-toán là hứa hão, tôi KHÔNG bán bạn moat ảo. Bí mật THẬT = **năng-lực-phụ-thuộc-DỮ-LIỆU**: engine auto-formalize + auto-proof **tuỳ thuộc CORPUS độc quyền** (requirement→property→code→proof→outcome tích luỹ trong ngách). **Lộ thuật toán KHÔNG lộ năng lực** — thiếu corpus thì cùng thuật toán chạy dở.
+- **Server-side TUYỆT ĐỐI** (không ship engine) + **flywheel** (mỗi lần dùng → corpus dày → đối thủ luôn chậm N tháng) + **tool-qualification** (DO-330 / ISO 26262-8) — track-record pháp-lý đối thủ mới KHÔNG có.
+- **Tuỳ chọn TEE / confidential-computing** cho lớp *"cả nhà-cloud cũng không soi được"* — chống black-box triệt để (§22).
+
+**QUAN HỆ VỚI WORKFLOW-SICP (§0–§20) — MỘT doc, ba lớp:** sicp-workflow là **DOGFOOD** dựng sẵn 3 phôi của sản phẩm: (a) **hạt nhân DB-có-răng** (requirement · business_rule · verdict · FK-bằng-chứng — §5) · (b) **cơ chế probe chân-4** (§7) = phôi thai của auto-proof · (c) **corpus đầu tiên** (rule→proof→outcome của chính sicp). ⟹ **nền → dogfood → sản phẩm**, không rời nhau.
+
+---
+
+## §-1. CHANGELOG v3.0 → v3.2 — CÁI GÌ ĐỔI, VÌ SAO
+> C1–C10 = v3.1 (fix chuyên gia + verify) · C11–C14 = v3.2 (product-first, human trao toàn quyền)
+
+| # | Đổi | Lý do | Nguồn |
+|---|---|---|---|
+| C1 | **node 1-bảng → thin-node danh-tính + bảng chi-tiết theo-kind** | CHECK theo-kind điều-kiện (`kind<>'business_rule' OR ...`) là bùa, không phải răng thật. Bảng con cho `rationale text NOT NULL` **thật** = P1 áp cho chính schema | phản biện 2(f) — **nhận** |
+| C2 | **RLS/GUC/3-field multi-tenant → DB-per-project + PG-role-per-user** | workflow-DB là store **DẪN XUẤT** (tái sinh bằng ingest); bài học V011 "thêm sau = đau" áp cho store **NGUỒN**, không phải dẫn xuất. DB riêng mỗi project khớp B8, không GUC, không quên | phản biện 2(e) — **nhận (hoãn, không giết — §22 SaaS)** |
+| C3 | **Tự dựng code-graph → MUA (CodeGraph/GitNexus) qua adapter thay-được** | code-graph là commodity + là nửa **dễ lỗi-thời nhất** (hãng lớn sắp ship native indexer). Lớp răng phía trên KHÔNG dính ruột nó | phản biện §3/§4 — **nhận** |
+| C4 | **Thêm R10** — không ai VỠ khi rule sai NGHĨA | probe chứng minh *tồn tại*, không chứng minh *đúng-ý*. Correctness-vs-intent bất khả máy-kiểm (khung tổng quát) ⟹ **giữ rule ÍT**, harvest chọn lọc | phản biện 2(d) — **nhận** |
+| C5 | **B7 "rollback 0 giây" SỬA** — hook Ⓐ fallback có điều kiện | CLAUDE.md + SessionStart là **role-agnostic dùng chung V1+V3**; flip stub fail-closed làm chết cả V1. Lưới an toàn nối vào thứ nó bảo hiểm | phản biện 2(b) — **nhận** |
+| C6 | **cross-check coverage: pre-commit CÓ MỤC TIÊU, toàn cục lúc đóng slice; ingest INCREMENTAL** | coverage toàn bộ 378k dòng mỗi commit × N coder = bất khả; drop+rebuild mỗi commit cũng vậy | phản biện 2(c) — **nhận** |
+| C7 | **§19 mắt xích gốc = CÓ (đã verify)** + master-* thành **skill** (`.claude/skills/`) | headless `claude -p "/cmd"` expand: **verified**. Commands & skills cùng tồn tại, skills khuyến nghị cho cái mới | verify Claude Code docs |
+| C8 | **Thêm §21 SẢN PHẨM (RTM-MCP) + §22 HÀO** | quyết định thương-mại-hoá vào ngách, hào để đối thủ + user không copy | **[HUMAN 2026-07-17]** |
+| C9 | **§17 → V3-lite path + MỘT số đo phủ định** (verdict "có nội dung" 20%→? sau 20 task) | chứng minh nền rẻ trước khi làm to; biết sai sau 3 tuần thay vì 6 tháng | phản biện §4 — **nhận** |
+| C10 | **B4 (cây git chung) → item ĐO-LẠI trình human**, KHÔNG "cấm bàn" | worktree giải cô-lập-file, agent-teams giải phối-hợp — nền đã đổi từ lúc B4 ra đời | phản biện 2(g) — **escalate, không tự lật** |
+| **C11** | **PRODUCT-FIRST (v3.2): §00 = trục chính sản phẩm; workflow-sicp = dogfood; MỘT doc (không tách)** | human: "ưu tiên sản phẩm, từ đó hoàn thiện workflow" + "không được tách doc" | **[HUMAN 2026-07-17]** |
+| **C12** | **NGÁCH + KIẾM TIỀN [DECIDED]:** ISO 26262 automotive; bán proof/certificate + continuous-certification (KHÔNG bán seat) | "kiếm tiền thị trường chưa có" + toàn quyền | **[DECIDED]** |
+| **C13** | **BÍ MẬT = năng-lực-phụ-thuộc-corpus + server-side + (tuỳ chọn) TEE, KHÔNG "toán bí mật"** | "không ai khám phá bí mật thuật toán" — trung thực: toán tái lập được, corpus + track-record thì không | **[DECIDED]** |
+| **C14** | **Thêm proof-engine (auto-formalize → auto-proof → certificate) vào §21; R13/R14 rủi ro sản phẩm** | §00 vòng chứng minh — vá R10 ở ngách hình-thức-hoá-được | **[DECIDED]** |
+
+**Đẩy lại chuyên gia (không nhận 100%):** (a) "commands merged vào skills v2.1.101" — **SAI** (đã verify: cùng tồn tại, commands vẫn chạy); (b) các số thị trường (sao/benchmark/"6 tháng có native indexer") = **dự đoán chưa verify** — dùng làm định hướng, KHÔNG chân lý; (c) V3-lite đo verdict = đo **KỶ LUẬT**, KHÔNG đo **tính-ĐÚNG** rule — R10 vẫn hở ở khung tổng quát, chỉ vá được ở ngách hình-thức-hoá-được (§22).
 
 ---
 
 ## §0. VÒNG 0 — CHỦ THỂ + BẤT BIẾN (`CLAUDE.md §14b`)
 
-**CHỦ THỂ:** cỗ máy điều phối các phiên Claude để thay đổi repo sicp — **và để hiểu phần mềm này phải làm đúng cái gì**.
+**CHỦ THỂ:** trục CHÍNH là **sản phẩm** (§00/§21); mục §0 này chốt Vòng-0 cho **workflow-sicp = DOGFOOD** phục vụ sản phẩm — cỗ máy điều phối các phiên Claude để thay đổi repo sicp **và để hiểu phần mềm phải làm đúng cái gì** (chính là năng lực bán ở §00). MỘT doc, KHÔNG tách.
 
 **BẤT BIẾN — không giải pháp nào được vi phạm:**
 
-| # | Bất biến | Nguồn |
+| # | Bất biến | Nguồn / trạng thái |
 |---|---|---|
 | B1 | Context Claude **hữu hạn · không chia sẻ · sẽ chết** | sự thật vật lý |
 | B2 | **Planner MÙ** — chỉ biết state khi nó chạy lệnh | `scripts/relay` |
-| B3 | **Chỉ human mở được terminal coder** | harness |
-| B4 | **N coder + 1 planner dùng CHUNG 1 cây git** — cố ý; branch-per-slot **đã BÁC, cấm bàn lại** | `wf-lock:33-46` |
+| B3 | **Chỉ human mở được terminal coder**; phiên KHÔNG tự spawn phiên (ngoại lệ: wrapper bash ngoài-phiên §19) | harness |
+| B4 | **N coder + 1 planner dùng CHUNG 1 cây git** — cố ý; branch-per-slot đã BÁC. **v3.1: chuyển "cấm bàn lại" → "ĐO-LẠI khi worktree/agent-teams rẻ hơn wf-lock" (C10, trình human)** | `wf-lock:33-46` + phản biện 2(g) |
 | B5 | **sicp KHÔNG sở hữu toolchain của nó** — `tsc`·`eslint`·`vitest`·`next`·`black`·`pytest`·`git`·harness **đều nói tiếng FILE** | đo |
-| B6 | **Sự tuân thủ mua bằng KẺ TIÊU THỤ VỠ**, không mua bằng luật, không mua bằng cổng | đo — §1 |
-| B7 | **V3 dựng SONG SONG, KHÔNG phá V1** — `/master-*` mới cạnh `/icp-multi-*` cũ; cũ luôn chạy được làm lưới an toàn; hư V3 thì gõ lại tên cũ = về nguyên trạng | **[HUMAN 2026-07-16]** — cùng luật §3: ai cùng tồn tại thì sống, ai đòi thay thế thì chết (Darklang) |
+| B6 | **Sự tuân thủ mua bằng KẺ TIÊU THỤ VỠ**, không mua bằng luật, không bằng cổng | đo — §1. **NỀN CỦA TOÀN BỘ THIẾT KẾ** |
+| B7 | **V3 dựng SONG SONG, KHÔNG phá V1** — cũ luôn chạy làm lưới an toàn. **v3.1 SỬA (C5): rollback KHÔNG phải "0 giây gõ tên cũ"** vì CLAUDE.md/SessionStart dùng chung; rollback = hook Ⓐ fallback-có-điều-kiện HOẶC `git revert CLAUDE.md` | **[HUMAN]** + phản biện 2(b) |
+| B8 | **Workflow TÁCH TUYỆT ĐỐI khỏi PROJECT** — MCP/CLI/DB/khoá **KHÔNG BAO GIỜ** trong `apps/`·`packages/`, **KHÔNG** dùng chung DB/Redis product | **[HUMAN]** — y như `icp-wf-redis:6380` tách `icp-redis:6379` |
+| B9 | **Cô lập tenant.** **v3.1 ĐỔI (C2): hôm nay = DB-per-project + PG-role-per-user** (khớp B8, không GUC). RLS/shared-PG chỉ khi host chung nhiều user không-tin-nhau (§22 SaaS — hoãn, không giết) | **[HUMAN]** sửa bởi phản biện 2(e) |
+| B10 | **Stack workflow-space = PYTHON** — khớp MCP SDK + tree-sitter binding + psycopg + pgvector + (sau) bge-reranker; tách sạch pnpm monorepo (B8); boot-CLI gọi được từ bash hook | **[HUMAN 2026-07-17]** |
 
-> **B5 giết vế "file code là sản phẩm cuối, không cần commit".** Kẻ đòi file ở đây **không phải con người** — nó là máy. Nên lập luận *"Claude không cần file như người"* không gỡ được ràng buộc này.
-> **B6 là nền của toàn bộ thiết kế.**
+> **B5 giết vế "file code là sản phẩm cuối, không cần commit".** Kẻ đòi file ở đây **là máy**, không phải người ⟹ lập luận *"Claude không cần file như người"* không gỡ được ràng buộc này.
+> **B6 là nền.** Mọi mục dưới đều là biến thể của: *chỉ kẻ VỠ VÌ SAI mới mua được sự THẬT.*
 
 ---
 
 ## §1. VẤN ĐỀ — ĐO ĐƯỢC, KHÔNG PHẢI CẢM TÍNH
 
-### 1.1 Thang tuân thủ `100 · 95 · 31 · 20 · 3 · 2,4`
+### 1.1 Thang tuân thủ `100 · 95 · 31 · 20 · 2,4`
 
 | Hiện vật | Luật viết? | Cổng máy? | **Kẻ tiêu thụ VỠ nếu sai?** | Tuân thủ |
 |---|---|---|---|---|
@@ -40,12 +98,11 @@
 | slice khai type | có | không | không | **1/31** |
 | ADR đối chiếu code | có | không | không | **3/126 = 2,4%** |
 
-**Đọc bảng:** `§6` và `§7` của `CLAUDE.md` **sinh từ ĐÚNG MỘT commit `ea3dc4a3`** — cùng file, cùng lúc, cùng tác giả → **95% vs 31%**. ⟹ **không phải "luật viết chưa rõ"**.
-`verdict` có **cổng cứng nhất hệ** (thiếu = `exit 2`) → mua được **100% sự CÓ MẶT**, **20% sự THẬT**. **101 lần verdict là đúng một chữ trần `accepted`.**
-`dispatch` **không có validator nào** mà **100%**.
+**Đọc bảng:** `§6` và `§7` của `CLAUDE.md` **sinh từ ĐÚNG MỘT commit `ea3dc4a3`** → **95% vs 31%** ⟹ không phải "luật viết chưa rõ".
+`verdict` có **cổng cứng nhất hệ** (thiếu = `exit 2`) → mua được **100% sự CÓ MẶT**, **20% sự THẬT** (101 lần verdict là đúng một chữ trần `accepted`).
+`dispatch` **không validator nào** mà **100%**.
 
-> **⟹ B6: cổng chỉ mua được cái nó ĐO được. Nó đo hình thức ⟹ nhận về hình thức.**
-> **Chỉ kẻ VỠ VÌ SAI mới mua được sự THẬT.**
+> **⟹ B6: cổng chỉ mua được cái nó ĐO được. Đo hình thức ⟹ nhận hình thức. Chỉ kẻ VỠ VÌ SAI mới mua sự THẬT.**
 
 ### 1.2 Planner MÙ business rule — lỗ chí mạng
 
@@ -53,28 +110,25 @@
 |---|---|
 | `.claude/commands/icp-multi-planners.md` (25 KB) | **0** |
 | `.claude/commands/icp-multi-coders.md` (10,6 KB) | **0** |
-| `docs/ICP_WEB_PLAN.md §8` — **kỹ năng PHÂN TÍCH SLICE** | **0** |
-| `CLAUDE.md` (209 dòng) | **1** — và là `§11 Comments`: *"Inline chỉ khi business rule KHÔNG obvious từ code"* |
+| `docs/ICP_WEB_PLAN.md §8` (kỹ năng PHÂN TÍCH SLICE) | **0** |
+| `CLAUDE.md` (209 dòng) | **1** — và là `§11 Comments` (lúc nào viết comment) |
 
-`§2 Nghi thức MỞ TASK`: `git log -20` · đọc diff · đọc Acceptance+Stop. **Không dòng nào bắt hiểu luật nghiệp vụ.**
-`VERIFY-DEPTH high-risk`: data-path · A⊥B/RLS · security · money · migration · idempotency — **toàn CẤU TRÚC + AN TOÀN, không có "có đúng luật nghiệp vụ không"**.
+`§2 Nghi thức MỞ TASK` + `VERIFY-DEPTH high-risk` = toàn **CẤU TRÚC + AN TOÀN**, không có "có đúng luật nghiệp vụ không".
 
-> **⟹ Workflow phân tích CẤU TRÚC, KHÔNG BAO GIỜ phân tích HÀNH VI.**
-> Planner mù ở **cả hai đầu**: mù lúc **cắt** task, mù lúc **verify** task.
-> ⟹ `verdict` 20% **không phải vì planner lười — planner KHÔNG CÓ GÌ ĐỂ ĐỐI CHIẾU.**
+> **⟹ Workflow phân tích CẤU TRÚC, KHÔNG BAO GIỜ phân tích HÀNH VI.** Planner mù cả lúc **cắt** lẫn lúc **verify**. `verdict` 20% không phải vì planner lười — **planner KHÔNG CÓ GÌ ĐỂ ĐỐI CHIẾU.**
 
 ### 1.3 Các kho tri thức và bệnh của chúng
 
 | Kho | Số | Bệnh |
 |---|---|---|
-| `docs/decisions/ADR-*.md` | 126 | có **lý do**, không có **răng** — 2,4% từng đối chiếu code; 17/126 có trường `Decision` |
-| `CHECK` trong DB | **121** | có **răng** (bất khả vi phạm), **không có lý do** — `avg_price>=min_price` truy ra 2 chỗ: chính nó + `docs/archive-v1/` (**kho đã chết**) |
+| `docs/decisions/ADR-*.md` | 126 | có **lý do**, không **răng** — 2,4% từng đối chiếu code |
+| `CHECK` trong DB | **121** | có **răng**, **không lý do** — `avg_price>=min_price` truy ra chính nó + `docs/archive-v1/` (kho đã chết) |
 | comment `// ADR-0XX` | **2.891 link / 1.254 file = 40% code** | **đồ thị ĐÃ TỒN TẠI**, đang là văn xuôi |
-| memory | 70 | **hoàn hảo bên trong** (70/70 field, 0/163 link gãy) — vì `description` bị `MEMORY.md` **ĂN**. **Từ ngoài vào thì bị gọi cụt** |
-| `seam` | — | **resolve = XOÁ** ⟹ đã suýt xoá vĩnh viễn **≥7 phán quyết human** |
-| mũi tên trỏ hư vô | **~24** | `ADR-026`+`ADR-030` (nằm trong chính `INDEX.md`) · `ADR-131` · **`V004`+`V007`** (chưa từng tồn tại, mà `user.repo.ts:142` **lấy V007 làm lý do cho code đang chạy**) · 9 script · ~10 memory cụt |
+| memory | 70 | hoàn hảo bên trong (70/70 field, 0/163 link gãy) — vì `description` bị `MEMORY.md` **ĂN**; từ ngoài vào bị gọi cụt |
+| `seam` | — | **resolve = XOÁ** ⟹ suýt xoá vĩnh viễn ≥7 phán quyết human |
+| mũi tên trỏ hư vô | **~24** | `ADR-026/030/131` · `V004/V007` (chưa từng tồn tại, mà `user.repo.ts:142` lấy V007 làm lý do code đang chạy) · 9 script · ~10 memory cụt |
 
-**`gen-facts.sh:26` tính `max`, KHÔNG đếm** ⟹ `FACTS.md` báo `highest: V079` và **mù hoàn toàn với lỗ V004/V007**.
+`gen-facts.sh:26` tính `max` KHÔNG đếm ⟹ mù hoàn toàn lỗ V004/V007.
 
 ### 1.4 Hai điểm mù ẢNH GƯƠNG
 
@@ -85,7 +139,14 @@ business rule  : có RĂNG,   không LÝ DO  (121/121 bất khả vi phạm, 0 r
 
 ### 1.5 Nguyên tắc rút ra: **đừng đẻ CỘT — đẻ KẺ ĂN**
 
-memory hoàn hảo **mà không có CHECK/NOT NULL/DB nào** — vì thiếu `description` thì memory **vô hình** ⟹ hỏng **thấy ngay**. Trường của ADR **không ai ăn** ⟹ 17/126.
+memory hoàn hảo **mà không có CHECK/NOT NULL nào** — vì thiếu `description` thì memory **vô hình** ⟹ hỏng thấy ngay. Trường của ADR **không ai ăn** ⟹ 17/126.
+
+### 1.6 Xác nhận từ thị trường (v3.1) — B6 đúng ở quy mô ngành
+
+Đánh giá 2026 các tool SDD cho đúng hai chế độ chết B6 tiên đoán: **Spec Kit · Kiro** sinh spec kỷ luật lúc mở phiên rồi để code làm nguồn sự thật ngay khi generate — *"spec là thật, nó chỉ thôi không cai trị gì nữa"*. **OpenSpec** giữ living-spec nhưng verify **cố ý KHÔNG chặn**, Given/When/Then tuỳ chọn, validate kiểm cấu-trúc không kiểm hành-vi. **Cursor rules** hướng-dẫn không ép-được. **Tessl** (spec-as-source, 125 triệu USD) engine tái-sinh closed-beta ~9 tháng, chỉ JS, output **không tất định** cùng một spec — bác MDA **bằng tiền**, ủng hộ §15 "không generate CODE".
+
+> **Không tool nào trong nhóm có FK-tới-bằng-chứng.** Đây là **chỗ duy nhất workflow này có lợi thế thật** — và là hạt giống sản phẩm (§21).
+> ⚠ Các số/nhận-định thị trường là **do chuyên gia cung cấp, tôi CHƯA verify độc lập** — dùng làm định hướng.
 
 ---
 
@@ -94,14 +155,16 @@ memory hoàn hảo **mà không có CHECK/NOT NULL/DB nào** — vì thiếu `de
 | # | Nguyên tắc | Vì sao |
 |---|---|---|
 | P1 | **Đẻ KẺ ĂN, không đẻ CỘT** | §1.5 |
-| P2 | **`FOREIGN KEY` là kẻ-vỡ hoàn hảo** — không mệt, không quên, không bấm-cho-xong, **không có chế độ im lặng** | ~24 mũi tên hư vô |
-| P3 | **ĐO thay vì KHAI** — cạnh nào đo được thì cấm khai | khai = mục; đo = tươi mỗi lần chạy |
+| P2 | **`FOREIGN KEY` là kẻ-vỡ hoàn hảo** — không mệt, không quên, không có chế độ im lặng | ~24 mũi tên hư vô |
+| P3 | **ĐO thay vì KHAI** — cạnh nào đo được thì cấm khai | khai = mục; đo = tươi mỗi lần |
 | P4 | **Semantic cho ỨNG VIÊN — probe QUYẾT** | embedding gần ≠ logic giống |
-| P5 | **DRY là điều kiện dừng** (`§14`) | dừng khi *nghe hợp lý* = nguồn của mọi lần trượt |
-| P6 | **Live-read > generate-rồi-đọc** | file sinh sẵn mà stale ⟹ Claude theo luật chết ⟹ **không ai vỡ** ⟹ im lặng |
-| P7 | **Split-brain CẤM · Composition OK** | cùng 1 fact ở 2 store = vỡ; fact khác nhau ở 2 store = ổn |
+| P5 | **DRY là điều kiện dừng** (`§14`) | dừng khi *nghe hợp lý* = nguồn mọi lần trượt |
+| P6 | **Live-read > generate-rồi-đọc** | file sinh sẵn mà stale ⟹ Claude theo luật chết ⟹ không ai vỡ ⟹ im lặng |
+| P7 | **Split-brain CẤM · Composition OK** | cùng 1 fact ở 2 store = vỡ; fact khác ở 2 store = ổn |
 | P8 | **Không rewrite thứ đang thắng** | `dispatch` 100% — đụng vào là ngu |
-| P9 | **DB chứa TEXT có cấu trúc, KHÔNG chứa mô hình trừu tượng** | mô hình ⟹ generator có **trần** ⟹ đó là thứ giết MDA 20 năm |
+| P9 | **DB chứa TEXT có cấu trúc, KHÔNG chứa mô hình trừu tượng** | mô hình ⟹ generator có **trần** = thứ giết MDA 20 năm |
+| **P10** | **MUA commodity, XÂY độc quyền** (v3.1) | 70% khối lượng thiết kế là hàng có tool trưởng thành + dễ bị model mới nuốt; giá trị nằm ở ~20% không ai làm hộ |
+| **P11** | **Chứng minh nền rẻ TRƯỚC, làm to SAU** (v3.1) | biết sai sau 3 tuần thay vì 6 tháng; một số đo phủ định (§17) |
 
 ---
 
@@ -109,467 +172,505 @@ memory hoàn hảo **mà không có CHECK/NOT NULL/DB nào** — vì thiếu `de
 
 | Ai | Làm gì | Kết cục |
 |---|---|---|
-| Intentional Programming (Simonyi, 1995) | graph "intentions" → sinh code | Microsoft từ chối productize 2001; editor GUI riêng *"khó deploy so với tooling text-based"* |
-| **JetBrains MPS** | AST là nguồn, projectional editor | **Sống** — chỉ trong **DSL hẹp** (thuế Hà Lan, embedded, biomedical) |
-| **Unison** | code = AST content-addressed trong DB | **Sống** — nhưng **phải phát minh ngôn ngữ mới**; vẫn edit bằng **text**, "slurp" vào DB |
-| **Darklang** | code trong DB + structured editor | **ĐÃ GIẾT** — *"structured editor không còn hợp lý khi LLM sinh code, và nó tách rời khỏi cách người ta code bằng agent trong Cursor/Copilot"*. Bỏ xong: *"làm được trong 2 tháng nhiều hơn cả 2 năm trước"* |
+| Intentional Programming (Simonyi, 1995) | graph "intentions" → sinh code | Microsoft từ chối productize 2001 |
+| **JetBrains MPS** | AST là nguồn, projectional editor | **Sống** — chỉ trong **DSL hẹp** |
+| **Unison** | code = AST content-addressed trong DB | **Sống** — nhưng **phải phát minh ngôn ngữ mới** |
+| **Darklang** | code trong DB + structured editor | **ĐÃ GIẾT** — *"structured editor không còn hợp lý khi LLM sinh code"* |
 | **Glean · Kythe · CodeQL · Sourcegraph** | file là nguồn, DB là **index dẫn xuất** | **Sống, production, quy mô Meta/GitHub** |
-| **CodeGraph · Codebase-Memory** (2026, cho AI agent) | tree-sitter → graph → MCP | **Sống** — CodeGraph 47,4k sao / 5 tháng |
-| **DOORS · Polarion · Jama** | **RTM** requirement→code→test | **30 năm**, bắt buộc trong DO-178C · ISO 26262 · IEC 62304 |
+| **CodeGraph · GitNexus** (2026, cho AI agent) | tree-sitter → graph → MCP | **Sống** — CodeGraph MIT ~47k sao; GitNexus tích hợp Claude Code sâu (MCP+skill+hook) |
+| **DOORS · Polarion · Jama** | **RTM** requirement→code→test | **30 năm**, bắt buộc DO-178C · ISO 26262 · IEC 62304 |
+| **Tessl** | spec-as-source, tái sinh code | **$125M**, non-deterministic, JS-only, closed beta — bác MDA bằng tiền |
 
-**Quy luật:** ai **cùng tồn tại với file** thì sống; ai **đòi thay file** thì chết. MPS/Unison sống vì **sở hữu trọn toolchain của mình** — B5 nói mình **không**.
+**Quy luật:** ai **cùng tồn tại với file** thì sống; ai **đòi thay file** thì chết. MPS/Unison sống vì **sở hữu trọn toolchain** — B5 nói mình **không**.
 
-**Số đo quyết định (Codebase-Memory, 31 repo thật):** graph **83%** chất lượng · ~1.000 token · 2,3 tool-call · <1ms — vs file-exploration **92%** · ~10.000 token · 4,8 call · 10–30s.
-**Graph rẻ hơn 10× nhưng NGU hơn 9 điểm.** Lý do họ nói rõ: *"graph lưu quan hệ nhưng **không lưu source line**"*. Kết luận của tác giả: **dùng cả hai**.
+**Số đo (Codebase-Memory, 31 repo):** graph **83%** chất lượng · ~1.000 token · 2,3 call vs file-exploration **92%** · ~10.000 token · 4,8 call. **Graph rẻ 10× nhưng NGU 9 điểm** — tác giả kết luận **dùng cả hai**.
+⚠ **Cảnh báo v3.1:** re-validate trên Opus 4.8 cho số THẤP hơn 4.7 — không regression mà vì **baseline native mạnh lên** (grep/read hiệu quả ngay luồng chính). Nhận định phổ biến: hãng lớn tự ship indexer native trong ~6 tháng (chưa verify) ⟹ **nửa code-graph là nửa dễ lỗi-thời nhất** ⟹ **MUA, đừng xây (P10, C3)**. **Nửa tri-thức-có-răng thì không ai làm hộ.**
 
-**⟹ Thiết kế này là RTM (DOORS) + code-graph (Glean) + hạt nhân DB, cho Claude đọc — chưa ai làm tử tế.**
+**⟹ Thiết kế này = RTM (DOORS) + code-graph (MUA) + hạt nhân DB có-răng, cho Claude/agent đọc.**
 
 ---
 
-## §4. KIẾN TRÚC TỔNG THỂ
+## §4. KIẾN TRÚC TỔNG THỂ (v3.1)
 
 ```
-   HUMAN ──"tôi muốn gì"──> requirement          HUMAN ──mở terminal──> CODER k
-     │                                                                    │
-     └──duyệt A1 DESIGN──> PLANNER (brain) <────LISTEN/NOTIFY────────────┘
-                              │                                           │
-                    wf.trace/why/exists                            wf.pickup(k)
-                              │                                           │
-   ┌──────────────────────────▼───────────────────────────────────────────▼────┐
-   │  POSTGRES — TRÍ NHỚ (có FK, có răng)                                       │
-   │  law·skill·requirement·business_rule·adr·memory·seam                       │
-   │  slice·task·wid·service·file·function·test·table·column·migration·commit   │
-   │  + pgvector (vi/en) + pg_trgm                                              │
-   └───────┬──────────────────────────────────────────────┬────────────────────┘
-   generate│                                        ingest │ (ĐO, không khai)
-           ▼                                               │
-   doc/req/*.md ──> OFT ──> trace.xml ───────────────────>─┤ [declared]
-   docs/*.md (human + git diff)                            │
-   memory/*.md + MEMORY.md (harness đọc)                   │
-                                                           │
-   pytest --cov / vitest --coverage ──> coverage.json ────>┤ [measured]
-   pg_constraint / information_schema ────────────────────>┤ [measured]
-   git log ───────────────────────────────────────────────>┘ [measured]
+ ┌── Ⓐ MỖI `claude` khởi động (human mở terminal, B3) chạy Ⓐ RIÊNG — role-AGNOSTIC ──────────────┐
+ │   SessionStart hook: icp-wf law  → LAW CHUNG + INDEX-SCRIPT   ·  icp-wf fact-index → fact-index │
+ │   ⚠ v3.1 FALLBACK (C5/B7): PG sống → inject luật-DB · PG CHẾT → inject luật-FILE V1 + cảnh báo to │
+ │   KHÔNG cache · DANH TỪ kéo sau bằng wf.*                                                         │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
 
-   REDIS (GIỮ NGUYÊN — không có bệnh đo được):
-     slot.state · dispatch · pickup · report · consume · macro · wf-lock
+ ═══ PLANNER (human mở terminal planner TRƯỚC — chỉ 1) ═══════════════════════════════
+   Ⓑ /master-planners (SKILL, C7) → persona planner + memory scope=planner + wf.status
+   ① human "tôi muốn X"
+   ② VERIFY RULE — VÒNG LẶP §8 tới DRY:  wf.trace→ứng viên→"áp Ở ĐÂU?"→neighbor→lặp
+        PROBE: viết test khẳng định rule (throwaway) → ĐỎ=mới · XANH=đã có⟹CẤM ID mới
+   ③ TRÌNH A1 (req→business_rule→field→code→test) → ④ HUMAN DUYỆT Ý NGHĨA (cổng — R10!)
+   ⑤ cắt slice/task → wf.dispatch(k) → Redis
+   ⑥ ▶RUNNABLE + chuông bell×2 → BÁO human (planner MÙ B2 + KHÔNG mở terminal B3)
 
-   GIT: 1 cây chung.  apps/ packages/ = file LÀ nguồn (KHÔNG generate code)
+ ═══ CODER k (human MỞ terminal SAU khi thấy ▶RUNNABLE — Ⓐ RIÊNG) ══════════════
+   Ⓑ /master-coders k (SKILL) → persona coder + memory scope=coder + slot k(Redis)
+   wf.context(k) → code + tag [impl->BR-042] + test → wf-lock→commit → wf.report → 🔔complete
+   pre-commit: tag-scan + coverage CÓ-MỤC-TIÊU (chỉ test mang tag rule bị đụng — C6)
+
+ ═══ PLANNER verify + đóng ══════════════════════════════════════════════════════════
+   ⑦ human ping (hoặc LISTEN/NOTIFY ⚠ chưa đo) → đánh thức planner
+   ⑧ VERIFY-DEPTH: đối chiếu HÀNH VI vs business_rule (wf.why) — KHÔNG chỉ cấu trúc
+   ⑨ wf.consume(verdict, evidence_id): ghi PG TRƯỚC (FK bằng chứng) → lật Redis → git push
+   đóng slice: cross-check tag×coverage TOÀN CỤC + ingest incremental (C6)
+
+   ┌──────────────────────────────────────────────┐   ┌─────────────────────────────┐
+   │  WORKFLOW-POSTGRES (DB-per-project, C2)       │   │ REDIS — NHỊP (phù du)       │
+   │  thin-node(id,kind,project) + bảng-theo-kind  │◄─►│ slot.state·dispatch·pickup  │
+   │  law·skill·script·requirement·business_rule   │ ⑨ │ report·consume·macro        │
+   │  ·adr·memory·seam·slice·task·wid·verdict      │PG │ wf-lock (khoá git — 1 khoá  │
+   │  +pgvector +pg_trgm   (edge FK về node)       │trước│ CHUNG V1+V3, B7 §18)      │
+   └───────┬──────────────────────────┬────────────┘   └─────────────────────────────┘
+           │ adapter (thay được, C3)  │
+   ┌───────▼──────────────┐   ── code-graph = MUA, KHÔNG xây ──────────────────────────
+   │ CodeGraph / GitNexus │   function·file·call·coverage ← tree-sitter 20+ ngôn ngữ
+   │ (MCP, commodity)     │   resolve theo fqn; workflow-DB giữ cạnh rule↔symbol (fqn, KHÔNG PK)
+   └──────────────────────┘
+
+   GIT: 1 cây chung.  apps/ packages/ + scripts/*(body) = file LÀ nguồn (KHÔNG generate)
+   ⚠ tri thức (req·rule·adr) THUẦN DB ⟹ git HẾT giữ ⟹ pg_dump = kho cuối (backup sinh tử)
 ```
 
 **Bất đối xứng có chủ ý:**
-- **`.md`** → **DB là nhà, file SINH RA** (round-trip tầm thường)
-- **CODE** → **file là nhà, DB giữ ĐỒ THỊ + HASH** (generate code = trần MDA = 4 cái xác)
+- **`.md`** → **DB là nhà, file SINH RA** (round-trip tầm thường) — mua được RĂNG (FK/CHECK) trên tri thức
+- **CODE** → **file là nhà; code-graph MUA ngoài; workflow-DB giữ cạnh rule↔symbol** (không xây parser, không content-address)
+
+**LỚP RĂNG — kẻ-ăn giữ cả hệ không mục (B6):**
+
+| Kẻ-ăn | Chặn gì | Chạy ở đâu (**KHÔNG phụ thuộc CI đang chết**) |
+|---|---|---|
+| **bảng-theo-kind + `NOT NULL` thật + FK** (C1) | rule không lý do · trỏ hư vô · body sai nhà · W-ID mồ côi | Postgres — `INSERT` chết |
+| **`PreToolUse` deny** (đã verify) | Claude sửa TAY file generate | harness local, **trước** permission-check, chặn cả `--dangerously-skip-permissions` |
+| **`pnpm test` guards** | rule không test · requirement mồ côi · generate≠file · embedding stale | `pnpm test` local |
+| **cross-check tag×coverage** (C6) | Claude gắn tag SAI (R1) | **pre-commit CÓ-MỤC-TIÊU** + **đóng-slice TOÀN-CỤC** |
+| **`suspect_edge` (review_state, C1)** | rule đổi nghĩa, cạnh chưa duyệt lại | query — Doorstop-style, neo khoá ỔN ĐỊNH |
+
+> **Vì sao KHÔNG ở CI:** `ci.yml` `disabled_manually`, runner offline (32/40 `queued`), chết im lặng. Kẻ-ăn phải sống ở thứ chạy local. **CI hỏng là việc của V1.**
 
 ---
 
-## §5. DATABASE — ĐẦY ĐỦ
+## §5. DATABASE — ĐẦY ĐỦ (v3.1: thin-node + bảng-theo-kind)
 
-### 5.1 `node` — một bảng duy nhất
+### 5.1 `node` — bảng DANH TÍNH MỎNG (đích của mọi cạnh)
 
-> **Vì sao MỘT bảng:** cạnh phải trỏ **mọi loại** thực thể. Tách `rules`/`symbols` ⟹ `edge.src` **đa hình** ⟹ **không `FK` nổi** ⟹ `INSERT` rác lọt ⟹ **tái tạo đúng bệnh ~24 mũi tên hư vô, bằng SQL**. Một bảng ⟹ `REFERENCES node(id)` chạy cho **toàn hệ**. Đây là lý do kỹ thuật, không phải thẩm mỹ.
+> **Vì sao thin-node + bảng con (C1):** FK cần **một đích** → `node` giữ danh tính để `edge` FK về (chống ~24 mũi tên hư vô). Nhưng nhét mọi cột vào một bảng ⟹ CHECK theo-kind điều-kiện (`kind<>'business_rule' OR ...`) = **bùa, không phải răng**. Tách bảng con ⟹ `rationale text NOT NULL` là **NOT NULL THẬT**. **Edge vẫn FK về `node` nên KHÔNG tái tạo "src đa hình"** — bảng con chỉ hang off node theo `id` chung. Đây là P1 áp cho chính schema.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
+-- DANH TÍNH: mọi thực thể có đúng 1 dòng ở đây; edge FK về đây
 CREATE TABLE node (
-  id            bigserial PRIMARY KEY,
-  kind          text NOT NULL,
-  name          text NOT NULL,          -- ổn định; planner đặt cho req/rule
-  rev           int,                    -- requirement/business_rule: ~1 ~2
-  state         text,                   -- enum theo kind (§5.4)
-
-  statement_vi  text,                   -- [HUMAN] song ngữ bắt buộc
-  statement_en  text,
-  rationale     text,                   -- VÌ SAO — thứ ADR có mà rule không có
-  body          text,                   -- .md: nội dung THẬT (đây là nhà). code: NULL
-
-  fingerprint   text,                   -- hash(nội dung chuẩn hoá) → suspect
-  origin        text NOT NULL CHECK (origin IN ('declared','measured','harvested')),
-
-  embedding_vi  vector(1024),
-  embedding_en  vector(1024),
-  embedded_fp   text,                   -- ≠ fingerprint ⟹ embedding stale ⟹ re-embed
-
-  created_at    timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (kind, name)
+  id          bigserial PRIMARY KEY,
+  project_id  text NOT NULL,          -- [C2] TENANT nhẹ: cô lập bằng DB-per-project + role, đây chỉ nhãn
+  kind        text NOT NULL,
+  name        text NOT NULL,          -- code: fqn/path (SCIP) · req/rule: tên planner đặt
+  fingerprint text,                   -- hash(nội dung chuẩn hoá) → suspect
+  origin      text NOT NULL CHECK (origin IN ('declared','measured','harvested')),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (project_id, kind, name)
 );
+CREATE INDEX ON node USING gin (name gin_trgm_ops);
 ```
 
-**`kind` — đầy đủ, không sót:**
+### 5.2 Bảng CHI TIẾT theo-kind — RĂNG THẬT (C1)
 
-| Nhóm | kind | Nguồn |
-|---|---|---|
-| Luật | `law` `skill` `dod_item` `stop_condition` | `CLAUDE.md` `.claude/commands/*` |
-| **Ý định** | **`requirement`** | **HUMAN viết** |
-| **Luật nghiệp vụ** | **`business_rule`** | **PLANNER dẫn xuất** + harvest 121 `CHECK` |
-| Kiến trúc | `adr` | 126 file |
-| Tri thức | `memory` `seam` | 70 file · relay |
-| Việc | `slice` `task` `episode` `wid` | 31+87 file · relay |
-| Code | `service` `file` `function` `test` | tree-sitter/SCIP + coverage |
-| **DB** | **`table` `column`** `migration` | **`information_schema` + `pg_constraint`** |
-| Bề mặt | `route` `log_event` `contract` | gen-facts / openapi |
-| Lịch sử | `commit` `test_run` | `git log` · output test |
+Mỗi kind có-nội-dung một bảng con, PK = FK về `node(id)`. Cột bắt buộc thành `NOT NULL` thật.
 
-### 5.2 `edge` — mọi quan hệ
+```sql
+-- Ý ĐỊNH (human viết) — song ngữ + embed để semantic-search (§7 [HUMAN])
+CREATE TABLE requirement (
+  id           bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+  statement_vi text NOT NULL,
+  statement_en text NOT NULL,
+  rev          int  NOT NULL DEFAULT 1,
+  state        text NOT NULL DEFAULT 'draft'
+                 CHECK (state IN ('draft','approved','superseded')),
+  embedding_vi vector(1024),
+  embedding_en vector(1024),
+  embedded_fp  text                       -- ≠ node.fingerprint ⟹ re-embed
+);
+
+-- LUẬT NGHIỆP VỤ (planner dẫn xuất) — răng: NOT NULL thật
+CREATE TABLE business_rule (
+  id           bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+  statement_vi text NOT NULL,
+  statement_en text NOT NULL,
+  rationale    text,                       -- xem CHECK dưới: NOT NULL trừ harvest
+  rev          int  NOT NULL DEFAULT 1,
+  state        text NOT NULL DEFAULT 'draft'
+                 CHECK (state IN ('draft','approved','superseded')),
+  embedding_vi vector(1024),
+  embedding_en vector(1024),
+  embedded_fp  text,
+  -- rule MỚI phải có lý do; chỉ HARVEST từ 121 CHECK cũ mới được NULL (lý do thật đã mất)
+  CONSTRAINT rule_has_reason CHECK (
+    (SELECT origin FROM node WHERE node.id = business_rule.id) = 'harvested'
+    OR rationale IS NOT NULL)
+);
+-- Nếu subquery-trong-CHECK không cho ở PG: mang cột origin xuống bảng con hoặc dùng trigger.
+
+-- .md CÓ BODY (DB là nhà)
+CREATE TABLE adr    (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     body text NOT NULL, rationale text,
+                     state text CHECK (state IN ('Draft','Locked','Superseded','Partially Superseded')));
+CREATE TABLE memory (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     body text NOT NULL,
+                     description text NOT NULL,               -- móc-câu MEMORY.md (chữa §1.3)
+                     mem_type text NOT NULL CHECK (mem_type IN ('user','feedback','project','reference')),
+                     scope    text NOT NULL CHECK (scope IN ('shared','coder','planner')));
+CREATE TABLE law    (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE, body text NOT NULL);
+CREATE TABLE skill  (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     body text NOT NULL, scope text NOT NULL CHECK (scope IN ('coder','planner')));
+CREATE TABLE slice  (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     body text NOT NULL, slice_type text,
+                     state text NOT NULL DEFAULT 'active' CHECK (state IN ('active','closing','closed')));
+
+-- ĐỘNG TỪ (body ở file bash — B5; DB giữ mô tả+path)
+CREATE TABLE script (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     locator text NOT NULL,                   -- path bash
+                     statement_vi text NOT NULL, statement_en text NOT NULL,  -- LÀM GÌ + KHI NÀO
+                     scope text NOT NULL CHECK (scope IN ('shared','coder','planner')));
+
+-- CODE (file là nhà; body NULL; resolve fqn qua CodeGraph)
+CREATE TABLE code_symbol (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                          locator text NOT NULL,             -- path[:line]
+                          symkind text NOT NULL CHECK (symkind IN ('service','file','function','test')));
+
+-- NHỊP đóng-băng (từ Redis, có FK tới bằng chứng — C: chữa verdict 20%)
+CREATE TABLE verdict (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                      value text NOT NULL CHECK (value IN ('accepted','rework','issue')),
+                      note  text,
+                      evidence_commit text NOT NULL,          -- FK-mềm: phải là commit CÓ THẬT (guard test)
+                      task_id bigint NOT NULL REFERENCES node(id));
+
+CREATE TABLE seam   (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     body text NOT NULL,
+                     state text NOT NULL DEFAULT 'open' CHECK (state IN ('open','resolved')));  -- KHÔNG xoá
+CREATE TABLE wid    (id bigint PRIMARY KEY REFERENCES node(id) ON DELETE CASCADE,
+                     state text NOT NULL DEFAULT 'open' CHECK (state IN ('open','ticked')));
+
+-- pgvector index trên bảng có embedding
+CREATE INDEX ON requirement   USING hnsw (embedding_vi vector_cosine_ops);
+CREATE INDEX ON requirement   USING hnsw (embedding_en vector_cosine_ops);
+CREATE INDEX ON business_rule USING hnsw (embedding_vi vector_cosine_ops);
+CREATE INDEX ON business_rule USING hnsw (embedding_en vector_cosine_ops);
+```
+
+> **Semantic-search "quét mọi kind trong 1 query" (§7 chân 3):** với bảng-theo-kind, dùng **UNION** các bảng có embedding, HOẶC 1 bảng `embedding(node_id, vec_vi, vec_en, fp)` phụ trợ để 1-query. Chọn bảng-embedding-phụ-trợ nếu số kind embed >3 (tránh UNION dài). Đây là chi tiết implementation — round-trip test không đụng.
+
+### 5.3 `edge` — mọi quan hệ (FK về `node`)
 
 ```sql
 CREATE TABLE edge (
-  src    bigint NOT NULL REFERENCES node(id) ON DELETE CASCADE,
-  dst    bigint NOT NULL REFERENCES node(id) ON DELETE CASCADE,
-  kind   text NOT NULL,
-  origin text NOT NULL CHECK (origin IN ('declared','measured')),
+  src         bigint NOT NULL REFERENCES node(id) ON DELETE CASCADE,
+  dst         bigint NOT NULL REFERENCES node(id) ON DELETE CASCADE,
+  kind        text NOT NULL,
+  origin      text NOT NULL CHECK (origin IN ('declared','measured')),
   PRIMARY KEY (src, dst, kind)
 );
+CREATE INDEX ON edge (dst, kind);
 ```
 
-| edge.kind | src → dst | origin | Lấy từ đâu |
+| edge.kind | src → dst | origin | Lấy từ |
 |---|---|---|---|
-| **`refines`** | **requirement → business_rule** | declared | planner, human duyệt A1 |
-| `impl` | business_rule → function | declared | **tag OFT** |
-| `utest` `itest` | business_rule → test | declared | **tag OFT** |
-| **`constrains`** | **business_rule → column** | **measured** | **`pg_constraint.conrelid`+`conkey`** |
-| **`covers`** | **test → function** | **measured** | **coverage `fnMap`+`f`** |
+| `refines` | requirement → business_rule | declared | planner, human duyệt A1 |
+| `impl` | business_rule → function | declared | tag `[impl->BR-042]` (tree-sitter, MUA CodeGraph resolve) |
+| `utest` `itest` | business_rule → test | declared | tag scan |
+| `constrains` | business_rule → column | measured | `pg_constraint.conrelid`+`conkey` |
+| `covers` | test → function | measured | coverage `fnMap`+`f` (per-lang) |
 | `cites` | function→adr · memory→memory | declared | tag / `[[link]]` |
 | `supersedes` | adr → adr | declared | ADR |
 | `contains` | service→file→function · slice→task | measured | scan |
 | `serves` | slice → requirement | declared | planner |
 | `blocks` | seam → slice | declared | planner |
 | `carries` `ticks` | task→wid · slice→wid | declared | planner |
-| `closed_by` | task → commit | declared | report (**FK ép commit có thật**) |
-| `touches` | commit → file | **measured** | **`git log`** |
+| `closed_by` | task → commit | declared | report (FK ép commit có thật) |
+| `touches` | commit → file | measured | `git log` |
 | `next` | migration → migration | measured | scan — **giết lỗ V004/V007** |
-| `governs` | law → dod_item | declared | luật |
-| `learned_from` | memory → task | declared | planner |
+| `reads` `writes` | script → table | declared | đăng ký script |
+| `emits` `invokes` | script → file/script | declared | đăng ký script |
 
-### 5.3 RĂNG — `CHECK` + trigger + index
+### 5.4 `review_state` — neo Doorstop vào khoá ỔN ĐỊNH (C1, sửa §20 #1)
+
+> **Vì sao KHÔNG để `reviewed_fp` trên edge:** code node dựng lại mỗi ingest (id mới) → edge `impl`/`utest` CASCADE tái-tạo → `reviewed_fp` mất → suspect hỏng. Neo review-state vào **(rule_id ổn định, target-fqn, tag-kind)** ở bảng riêng, KHÔNG trên cạnh bay-hơi.
 
 ```sql
--- [HUMAN] song ngữ bắt buộc cho ý định & luật nghiệp vụ
-ALTER TABLE node ADD CONSTRAINT bilingual CHECK (
-  kind NOT IN ('requirement','business_rule')
-  OR (statement_vi IS NOT NULL AND statement_en IS NOT NULL));
+CREATE TABLE review_state (
+  rule_id     bigint NOT NULL REFERENCES node(id) ON DELETE CASCADE,  -- ổn định (human-curated)
+  target_fqn  text   NOT NULL,                                        -- fqn đích (resolve qua CodeGraph)
+  tag_kind    text   NOT NULL,                                        -- impl|utest|itest
+  reviewed_fp text   NOT NULL,                                        -- hash(rule.statement) lúc review
+  PRIMARY KEY (rule_id, target_fqn, tag_kind)
+);
 
--- rule MỚI phải có lý do. Chỉ rule HARVEST từ 121 CHECK cũ mới được NULL
--- (lý do thật sự đã mất). Planner vừa quyết ⟹ lý do ĐANG BIẾT ngay lúc đó.
-ALTER TABLE node ADD CONSTRAINT rule_has_reason CHECK (
-  kind <> 'business_rule' OR origin = 'harvested' OR rationale IS NOT NULL);
-
--- .md: DB là nhà ⟹ phải có body. code: file là nhà ⟹ CẤM có body.
-ALTER TABLE node ADD CONSTRAINT body_home CHECK (
-  (kind IN ('law','skill','adr','memory','slice','requirement','business_rule')
-   AND body IS NOT NULL)
-  OR (kind IN ('function','test','column','table','file','commit') AND body IS NULL)
-  OR kind NOT IN ('law','skill','adr','memory','slice','requirement',
-                  'business_rule','function','test','column','table','file','commit'));
-
--- rev chỉ cho thứ có revision
-ALTER TABLE node ADD CONSTRAINT rev_scope CHECK (
-  rev IS NULL OR kind IN ('requirement','business_rule'));
-
-CREATE INDEX ON node USING hnsw (embedding_vi vector_cosine_ops);
-CREATE INDEX ON node USING hnsw (embedding_en vector_cosine_ops);
-CREATE INDEX ON node USING gin  (name gin_trgm_ops);
-CREATE INDEX ON node USING gin  (statement_vi gin_trgm_ops);
-CREATE INDEX ON node USING gin  (statement_en gin_trgm_ops);
-CREATE INDEX ON edge (dst, kind);
+CREATE VIEW suspect_edge AS
+  SELECT r.*, n.fingerprint AS current_fp
+  FROM review_state r JOIN node n ON n.id = r.rule_id
+  WHERE r.reviewed_fp IS DISTINCT FROM n.fingerprint;   -- rule đổi nghĩa, cạnh chưa duyệt lại
 ```
 
-**Trigger — slice không đóng được khi còn W-ID mồ côi:**
-```sql
-CREATE FUNCTION check_wid_orphan() RETURNS trigger AS $$
-BEGIN
-  IF NEW.kind='slice' AND NEW.state='closed' AND EXISTS (
-    SELECT 1 FROM edge c JOIN node t ON t.id=c.dst
-    WHERE c.src=NEW.id AND c.kind='contains' AND t.kind='task'
-      AND EXISTS (SELECT 1 FROM edge w WHERE w.src=t.id AND w.kind='carries'
-                  AND NOT EXISTS (SELECT 1 FROM edge k
-                                  WHERE k.src=NEW.id AND k.kind='ticks' AND k.dst=w.dst))
-  ) THEN RAISE EXCEPTION 'slice % còn W-ID chưa tick', NEW.name; END IF;
-  RETURN NEW;
-END $$ LANGUAGE plpgsql;
-```
+### 5.5 Kẻ-ăn trong TEST SUITE (`pnpm test` — không phụ thuộc CI)
 
-**Kẻ-ăn KHÔNG đặt được vào DB → đặt vào TEST SUITE** (vì `pnpm test` **đang chạy**, còn CI thì **`disabled_manually`**):
 ```
 test_every_business_rule_has_verifying_test()   -- rule không test = ĐỎ
 test_every_requirement_refines_to_rule()        -- requirement mồ côi = ĐỎ
 test_no_dangling_generated_file()               -- generate(DB) ≠ file = ĐỎ
 test_embedding_not_stale()                      -- embedded_fp ≠ fingerprint = ĐỎ
+test_verdict_evidence_commit_exists()           -- verdict.evidence_commit không có trong git = ĐỎ (chữa 20%)
+test_every_script_registered()                  -- script chưa đăng ký / thiếu mô tả = ĐỎ
 ```
 
-### 5.4 `state` theo `kind`
+### 5.6 MEMORY — hai trục, ba đường vào context [HUMAN]
 
-| kind | state |
-|---|---|
-| `slice` | `active → closing → closed` |
-| `task` | `pending → wip → done\|blocked` |
-| `seam` | `open → resolved` — **KHÔNG xoá nữa** (chấm dứt việc xoá vĩnh viễn tri thức) |
-| `requirement` `business_rule` | `draft → approved → superseded` |
-| `adr` | `Draft · Locked · Superseded · Partially Superseded` (**enum THẬT, đã đo — không bịa**) |
-| `wid` | `open → ticked` |
+`mem_type` (fact loại gì) ⊥ `scope` (AI nào cần). `scope` chỉ điều khiển **ĐẨY chủ động**, KHÔNG điều khiển **TÌM ĐƯỢC** (`wf.trace` tìm mọi scope) ⟹ **mis-scope AN TOÀN** (mất một cú đẩy, không giấu memory); mặc định `shared` khi phân vân.
+
+| `scope` | Kẻ giao vào context | Khi nào |
+|---|---|---|
+| `shared` | MEMORY.md-STUB → `icp-wf fact_index` (kéo) | Ⓐ mọi phiên — mù vai |
+| `coder` | persona pull `icp-wf persona coder` | Ⓑ `/master-coders` |
+| `planner` | persona pull `icp-wf persona planner` | Ⓑ `/master-planners` |
+
+**⚠ CHƯA ĐO (chốt ở §17 bước 1):** harness recall đọc theo **MEMORY.md index** hay **quét thư mục memory**? + MEMORY.md dạng stub harness có chấp nhận? Quyết role-memory sinh-file hay chỉ-DB.
+
+### 5.7 SCRIPT — đối tượng THỨ BA + BOOT = ĐỘNG TỪ [HUMAN]
+
+```
+BOOT (nhỏ·ổn định·pull):  LAW + INDEX SCRIPT (scope đúng vai) + INDEX FACT NHẸ (tên+móc-câu)
+ON-DEMAND (nặng·wf.*):    rule body · memory body · code · fact
+```
+Mỗi mục index PHẢI có MÔ TẢ (không tên trơ): script = `name·LÀM GÌ·KHI NÀO·vai`; fact = `name·móc-câu`. Danh sách tên trơ = Claude đoán cách dùng = sai.
+
+### 5.8 TENANT — v3.1: DB-per-project + PG-role (C2, thay RLS/GUC)
+
+> **Vì sao đổi (phản biện 2(e)):** workflow-DB là store **DẪN XUẤT** — code-graph, 121 rule (từ `pg_constraint`), git log đều **tái sinh bằng ingest**. Bài học V011 "thêm sau = đau" áp cho store **NGUỒN** (không tái tạo nổi tenant data), KHÔNG áp cho dẫn xuất (đổi schema → re-ingest). Cô lập **rẻ hơn + mạnh hơn RLS**:
+
+```
+workflow-Postgres instance riêng (B8, tách icp_app)
+  ├── DB  icp_wf_sicp     (role: wf_sicp)      ← project sicp
+  └── DB  icp_wf_<other>  (role: wf_<other>)   ← project khác
+Redis: wf:{project_id}:slot:k · wf:{project_id}:w:git   (khoá git per-project)
+```
+- Không GUC, không quên set, **không isolation-test** (cô lập ở tầng DB/role, không app-filter).
+- `project_id` trên node = **nhãn**, không phải cơ chế cô lập.
+- **RLS/shared-PG chỉ sống lại khi host chung nhiều user không-tin-nhau (§22 SaaS)** — hoãn tới lúc đó, KHÔNG giết ý tưởng.
 
 ---
 
-## §6. BA TẦNG — `requirement → business_rule → code` **[HUMAN]**
+## §6. BA TẦNG — `requirement → business_rule → code` [HUMAN]
 
 ```
-requirement   "khách mua 10 sản phẩm cùng SKU thì được tặng 3"      ← HUMAN viết (tiếng Việt)
+requirement   "khách mua 10 SKU thì tặng 3"          ← HUMAN viết (song ngữ)
     │ refines
-    ├── business_rule  gift_qty = floor(qty/10)*3                    ← PLANNER dẫn xuất
-    ├── business_rule  gift SKU phải trùng SKU nguồn                    tự đặt tên [HUMAN]
-    └── business_rule  tặng hàng phải trừ tồn kho                       human duyệt A1
+    ├── business_rule  gift_qty = floor(qty/10)*3     ← PLANNER dẫn xuất, tự đặt tên BR-042
+    └── business_rule  tặng phải trừ tồn kho              human duyệt A1 (Ý NGHĨA — R10)
              │ impl          │ constrains         │ utest
              ▼               ▼                    ▼
-        applyGiftLines()  order_line.gift_qty   test_gift_decrements_stock
-                                                     │ covers [ĐO]
-                                                     └──> decrementStock()
+        applyGiftLines()  order_line.gift_qty   test_gift_decrements_stock ──covers[ĐO]──> decrementStock()
 ```
 
-**Ba tầng này = ranh giới VAI, biến thành DỮ LIỆU:**
-- **HUMAN** nói *cần gì, muốn gì* → `requirement`
-- **PLANNER** dẫn xuất → `business_rule`, **tự đặt tên** (human **không** làm thư ký)
-- **CODER** → `code` + tag
-
-OFT hỗ trợ sẵn chuỗi nhiều tầng: `req` → `rule` → `impl` → `utest`.
-
-**Định danh:** `rule~offer-avg-price-not-below-floor~1` — `~1` = **revision**. Sửa nội dung → `~2` → **mọi tag còn trỏ `~1` thành lỗi build**.
-**Nhưng bump phụ thuộc NGƯỜI NHỚ ⟹ hạng 31%.** Nên thêm **`fingerprint` kiểu Doorstop**: `hash(statement)` đổi mà `rev` không đổi ⟹ **link tự động `suspect`**. **`rev` = ý định người · `fingerprint` = máy bắt quên.**
+- **HUMAN** nói *cần gì* → `requirement` · **PLANNER** dẫn xuất → `business_rule` (tự đặt tên) · **CODER** → code + tag.
+- **`BR-042` — mã ĐỤC, ổn định, VÔ NGHĨA [HUMAN]:** nhét nghĩa vào danh tính (`~avg-price-floor~`) ⟹ đổi nhãn = mọi tag chết (cùng bài "fqn làm PK vỡ"). Nghĩa sống ở `statement_vi/en` + cạnh. Cấp số: `nextval('br_seq')`, `UNIQUE(kind,name)` — DB atomic, không ai "phán số kế tiếp".
+- **`fingerprint` gánh anti-rot, KHÔNG `rev` trong tag:** tag chỉ trỏ `BR-042` (không mang rev). `rev` = nhãn người-đọc. Cơ chế ép = `fingerprint` (máy, tự động) → `suspect_edge` (§5.4).
 
 ---
 
 ## §7. CƠ CHẾ TÌM RULE — 4 CHÂN, MẠNH DẦN
 
-**Bài toán:** *"tôi nghĩ ra rule C — đã có chưa?"* Tra tên **vô dụng** (chưa có ID). So text **vô dụng** (khác cách diễn đạt).
-
 | # | Chân | Cách | Độ tin |
 |---|---|---|---|
-| 1 | **Cấu trúc** | rule C đụng field nào → `SELECT` mọi rule `constrains` field đó | **cao** — chính xác, không ML. Tìm theo **CHỦ THỂ**, không theo **chữ** |
-| 2 | **Chữ** | `pg_trgm` trên `name` + `statement_vi/en` | trung bình |
-| 3 | **Nghĩa** | `pgvector` — **quét MỌI `kind` trong 1 query** | thấp — **ứng viên, không kết luận** |
-| 4 | **HÀNH VI** | **viết test khẳng định rule C, chạy** | **QUYẾT ĐỊNH** |
+| 1 | **Cấu trúc** | rule đụng field nào → mọi rule `constrains` field đó | **cao** — không ML, theo CHỦ THỂ |
+| 2 | **Chữ** | `pg_trgm` trên `name`+`statement_vi/en` | trung bình |
+| 3 | **Nghĩa** | `pgvector` quét mọi kind (§5.2) | thấp — **ứng viên, không kết luận** |
+| 4 | **HÀNH VI** | **viết test khẳng định rule, chạy** | **QUYẾT ĐỊNH** |
 
-**Chân 3 — chỗ một bảng `node` trả lãi:** rule C có thể **đang nấp** dưới dạng `business_rule` chưa tên · `adr` · `memory` · **`function` có hành vi đó mà không ai viết ra** · **`test` khẳng định nó mà không có rule** · `law`.
-```sql
-SELECT kind, name, statement_vi FROM node
-ORDER BY LEAST(embedding_vi <=> $q_vi, embedding_en <=> $q_en) LIMIT 10;
-```
-Một query quét **toàn hệ**. Tách bảng ⟹ phải bắn nhiều query + **không bao giờ tìm ra rule nấp trong `memory`/`adr`**.
-
-**⚠ Vì sao chân 3 KHÔNG được là kết luận (P4):**
-```
-"giá trung bình không được THẤP hơn giá sàn"   avg_price >= min_price
-"giá trung bình không được CAO hơn giá trần"   avg_price <= max_price
-```
-Hai câu **cực gần** về vector, **NGƯỢC** về logic. Negation là chỗ embedding **dở nhất**. Và người đọc kết quả là Claude — *"rất muốn làm bạn hài lòng"*.
-
-**Chân 4 — cái duy nhất chứng minh được:**
+**Chân 4 — cái duy nhất chứng minh ĐƯỢC ÉP:**
 ```sql
 BEGIN; INSERT INTO catalog_offer(avg_price,min_price) VALUES (5,10); ROLLBACK;
--- bị từ chối ⟹ rule ĐÃ được ép   |   được nhận ⟹ CHƯA được ép
+-- bị từ chối ⟹ rule ĐÃ ép   |   được nhận ⟹ CHƯA ép
 ```
-Dạng tổng quát: **viết test khẳng định rule C → chạy trên code hiện tại. XANH ⟹ rule ĐÃ TỒN TẠI (dù chưa ai đặt tên). ĐỎ ⟹ thật sự mới.**
-Đúng `§14`: *"CHỨNG MINH bằng exploit/repro THẬT. Destructive → transaction + `ROLLBACK`"*.
+XANH ⟹ rule tồn tại (dù chưa ai đặt tên). ĐỎ ⟹ thật sự mới. **Phần thưởng HARVEST:** test XANH mà chưa có rule ⟹ luật ngầm không tên → đặt ID → tag → coverage chỉ code.
 
-**Phần thưởng phụ — HARVEST:** test XANH mà chưa có rule ⟹ vừa tìm thấy **luật ngầm không tên**. Đặt ID → tag test → **coverage TỰ chỉ ra hàm nào implement**. ⟹ đường ra cho 378k dòng đầy luật ngầm.
+**⚠ P4 — chân 3 KHÔNG được là kết luận:** `avg_price >= min_price` vs `avg_price <= max_price` cực gần vector, NGƯỢC logic (negation = chỗ embedding dở nhất) + người đọc là Claude *"rất muốn làm bạn hài lòng"*.
 
-**⚠ Chốt chặn:** **121/121 rule hôm nay VÔ HÌNH với semantic search** — chúng chỉ tồn tại dạng `CHECK (avg_price >= min_price)`, **không có chữ nào**. **Không semantic-search được thứ chưa từng viết ra bằng lời.** ⟹ **Việc đầu tiên KHÔNG phải dựng schema — là VIẾT LỜI cho 121 cái CHECK đó.**
+**⚠ Chốt chặn:** **121/121 rule hôm nay VÔ HÌNH với semantic** (chỉ là biểu thức SQL, không chữ). ⟹ **Việc đầu KHÔNG phải dựng schema — là VIẾT LỜI cho 121 CHECK (§17 bước 2).**
+
+**⚠ re-ranker (§12.1) HOÃN** — bắt đầu KHÔNG reranker: `pgvector` top-K → planner đọc thẳng. Thêm `bge-reranker-v2-m3` CHỈ KHI đo thấy >~30 ứng-viên/lần hoặc negation-confusion thật. Disambiguate THẬT vẫn là PROBE (chân 4).
+
+**⚠ R10 (§16):** cả 4 chân chứng minh **tồn tại / được-ép**, KHÔNG chứng minh **đúng-ý-human**. Correctness-vs-intent = cổng A1 (khung tổng quát); máy chỉ vá được ở ngách hình-thức-hoá-được (§22).
 
 ---
 
-## §8. CƠ CHẾ TRACE — VÒNG LẶP, DỪNG BẰNG DRY **[HUMAN]**
-
-Semantic một mình trả *"10 rule nghe giống nhau"* — vô dụng. **Cái TRACE mới khử mơ hồ.**
+## §8. CƠ CHẾ TRACE — VÒNG LẶP, DỪNG BẰNG DRY [HUMAN]
 
 ```
 wf.trace("mua 10 tặng 3")
- vòng 1  semantic(vi+en) + trgm + cấu trúc        → 6 ứng viên mơ hồ
- vòng 2  mỗi ứng viên → NÓ ĐANG ÁP Ở ĐÂU?
-         rule#3 → order_line.gift_qty · 2 hàm · 4 test · slice S-PROMO-01   ← có thật
-         rule#5 → KHÔNG áp ở đâu                                            ← mồ côi, loại
+ vòng 1  semantic + trgm + cấu trúc          → ứng viên mơ hồ
+ vòng 2  mỗi ứng viên → NÓ ĐANG ÁP Ở ĐÂU?    (rule mồ côi = loại)
  vòng 3  trace lộ neighbor KHÔNG ai hỏi
-         cùng cột gift_qty còn rule#9  ·  applyGiftLines() gọi decrementStock() → rule#11
- vòng 4  → ứng viên mới → quay lại vòng 2
- DỪNG    probe quyết được  HOẶC  2 vòng LIÊN TIẾP không ra node mới
+ DỪNG    probe quyết được  HOẶC  2 vòng LIÊN TIẾP không node mới  (= §14 DRY)
 ```
+`wf.trace` trả **trạng thái vòng lặp** (mới ra gì · xác nhận gì · ĐÃ BÁC gì — §14 "ghi cả giả thuyết bị bác"), không phải danh sách.
 
-> **Điều kiện dừng = `CLAUDE.md §14` DRY.** Không trùng hợp: cả hai chống **đúng một thứ** — *dừng khi vừa nghe được một câu chuyện hợp lý*. **Luật human viết cho Claude trở thành điều kiện dừng của máy.**
-
-`wf.trace` trả về **trạng thái vòng lặp**, không phải danh sách: **mới ra gì · xác nhận gì · ĐÃ BÁC gì** (§14: *"ghi cả giả thuyết BỊ BÁC"*).
-
-**Truy vấn nền — `rule → code + field + test`:**
-```sql
-SELECT r.statement_vi, r.rationale,
-  array_agg(DISTINCT c.name) FILTER (WHERE e.kind='constrains')         AS fields,
-  array_agg(DISTINCT f.name) FILTER (WHERE e.kind='impl')               AS code,
-  array_agg(DISTINCT t.name) FILTER (WHERE e.kind IN ('utest','itest')) AS tests
-FROM node r
-LEFT JOIN edge e ON e.src=r.id
-LEFT JOIN node c ON c.id=e.dst AND c.kind='column'
-LEFT JOIN node f ON f.id=e.dst AND f.kind='function'
-LEFT JOIN node t ON t.id=e.dst AND t.kind='test'
-WHERE r.kind='business_rule' AND r.name=$1
-GROUP BY r.id;
-```
-
-**`rule → slice/task` — SUY RA, không ai khai:**
-```
-rule ──impl──> function <──contains── file <──touches── commit <──closed_by── task <──contains── slice
-```
-`impl` = tag OFT · `touches` = **`git log` đo** · `closed_by` = report (FK). 5 hop, một `JOIN`.
-
-**Cross-check — cái duy nhất bắt được Claude gắn tag sai:**
-```
-tag nói X impl rule R,  nhưng test của R KHÔNG BAO GIỜ chạm X   ⟹ một trong hai SAI
-test của R chạm Y,      nhưng Y không có tag                     ⟹ ripple chưa ai ghi nhận
-```
-Hai chân **ĐO** (`constrains`, `covers`) kẹp hai chân **KHAI** (`impl`, `utest`).
+**`rule → slice/task` SUY RA:** `rule ─impl→ function ←contains─ file ←touches─ commit ←closed_by─ task ←contains─ slice`. 5 hop, một JOIN. **Cross-check:** tag nói X impl R nhưng test của R không chạm X ⟹ một trong hai SAI (hai chân ĐO kẹp hai chân KHAI).
 
 ---
 
-## §9. RANH GIỚI REDIS ↔ POSTGRES **[HUMAN: giữ Redis]**
+## §9. RANH GIỚI REDIS ↔ POSTGRES [HUMAN: giữ Redis]
 
-**Số thật:** Redis ~0,1–0,2 ms · Postgres local ~1–5 ms + connect 5–20 ms. relay chạy **vài lần/task**; task kéo **phút→giờ**; một lượt Claude **vài giây**. ⟹ **20 ms là vô hình. Tốc độ KHÔNG phải lý do cho cả hai phía.**
+**Số:** Redis ~0,1–0,2ms · PG local ~1–5ms + connect 5–20ms. relay chạy vài lần/task; task phút→giờ ⟹ **20ms vô hình. Tốc độ KHÔNG phải lý do.** Lý do thật (P8): **relay KHÔNG có bệnh đo được** (`dispatch` 20/20). Bệnh ở `report`(31%)/`verdict`(20%)/`seam`(xoá) — chữa bằng **FK tới bằng chứng**, không bằng đổi store.
 
-**Lý do thật (P8):** **relay KHÔNG có bệnh đo được.** `dispatch` **20/20**. Bệnh nằm ở `report`(31%)/`verdict`(20%)/`seam`(xoá) — và **không cái nào chữa bằng đổi store**; chúng chữa bằng **FK tới bằng chứng**.
+| Redis — NHỊP (chết sau 1 task) | Postgres — TRÍ NHỚ (sống lâu ⟹ có FK) |
+|---|---|
+| slot.state·dispatch·pickup·report(live)·consume·macro·pending-human·**wf-lock** | law·requirement·business_rule·adr·memory·seam·slice·task·wid·verdict·edge |
 
-| | Redis — **NHỊP** | Postgres — **TRÍ NHỚ** |
-|---|---|---|
-| giữ | `slot.state` · `dispatch` · `pickup` · `report`(live) · `consume` · `macro` · `pending-human` · **`wf-lock`** | law · requirement · business_rule · adr · memory · seam · slice · task · wid · code-graph · table/column · commit |
-| tính chất | chết sau 1 task | phải sống lâu hơn task ⟹ **phải có FK** |
-
-**Giao đúng MỘT chỗ — `consume`:** **ghi PG trước** (verdict + bằng chứng + FK) → **rồi mới lật Redis**. PG là điểm commit; lật Redis retry được, idempotent.
-
-> **P7:** `relay report` set `state`+ledger là **MỘT** thao tác — **tách ra 2 store là VỠ**. `wf status` đọc slot(Redis) + seam(PG) là **fact khác nhau** — **OK**.
-
-**`dispatch` 100% KHÔNG phải nhờ Redis** — nhờ **coder tắc ngay nếu nó rỗng**. Kẻ-vỡ là **coder**, không phải store.
-
-**`wf-lock` giữ nguyên Redis.** Bug đã biết: **TTL 600s hết hạn giữa section 20 phút** → sửa bằng renew/tăng TTL, **không phải bằng đổi DB**.
+**Giao đúng MỘT chỗ — `consume`:** ghi PG trước (verdict + FK bằng chứng) → rồi lật Redis (idempotent, retry được). **P7:** `relay report` set state+ledger là MỘT thao tác — tách 2 store = VỠ. `wf status` đọc slot(Redis)+seam(PG) là fact khác nhau = OK.
 
 ---
 
 ## §10. VAI TRÒ — TỪNG BƯỚC
 
 ### 10.1 HUMAN
-1. **Nói cần gì, muốn gì** → `requirement` (tiếng Việt)
-2. **Duyệt A1 DESIGN** — cổng **đã tồn tại** (`ICP_WEB_PLAN:26`). Duyệt **Ý NGHĨA** của business_rule planner dẫn xuất
-3. **Mở terminal coder** (B3)
+1. Nói cần gì → `requirement` (song ngữ) · 2. **Duyệt A1 — Ý NGHĨA của rule (cổng R10)** · 3. Mở terminal coder (B3).
+**KHÔNG:** đặt req ID · bump rev · gõ tag · làm thư ký. [HUMAN]
 
-**KHÔNG làm:** đặt req ID · bump rev · gõ tag · làm thư ký. **[HUMAN 2026-07-16]**
+### 10.2 PLANNER — `/master-planners` (SKILL)
+```
+Ⓐ SessionStart: icp-wf law (fallback file V1 nếu PG chết) + fact_index
+Ⓑ /master-planners → persona + memory scope=planner
+1 wf.status  2 nhận requirement  3 wf.trace → VÒNG LẶP §8 tới DRY
+4 dẫn xuất rule: BR-042 · statement_vi+en · rationale
+5 PROBE: test throwaway → ĐỎ=mới (XANH=đã có ⟹ CẤM ID mới)
+6 A1 → human duyệt Ý NGHĨA   7 wf.insert(rule) → FK+CHECK ép
+8 cắt slice+task, edge(serves)→requirement (slice KHÔNG trỏ requirement ⟹ CẤM cắt)
+9 wf.dispatch(k) → Redis   10 ▶RUNNABLE + chuông bell×2
+11 human ping → thức   12 VERIFY-DEPTH: wf.why → HÀNH VI vs rule
+13 wf.consume(verdict, evidence_id) → PG trước → Redis → push
+14 còn task → 9; hết → đóng (ingest thay gen-facts)
+```
+**Giữ:** không viết source (probe = throwaway) · đầu não = phân-tích+phân-phối+deep-verify · anti-over-hold · anti-idle.
 
-### 10.2 PLANNER — `/icp-multi-planners`
+### 10.3 CODER — `/master-coders k` (SKILL)
 ```
-1  SessionStart hook → icp-wf law --role=planner → LUẬT inject thẳng vào context
-2  wf.status                      → macro · slot · slice · seam
-3  nhận requirement từ human
-4  wf.trace(requirement)          → VÒNG LẶP §8 → đã có rule chưa?
-5  chưa có → dẫn xuất business_rule: đặt tên · statement_vi + statement_en · rationale
-6  PROBE: viết test cho rule → chạy → ĐỎ = mới (XANH = đã có ⟹ CẤM đặt ID mới)
-7  A1 DESIGN → human duyệt Ý NGHĨA
-8  wf.insert(rules)               → FK + CHECK ép (song ngữ, có lý do)
-9  cắt slice + task, edge(serves) → requirement.  Slice KHÔNG trỏ requirement ⟹ CẤM cắt
-10 wf.dispatch(k, task)           → Redis (giữ nguyên form 5 lớp)
-11 ▶ RUNNABLE + chuông bell.oga ×2
-12 coder xong → LISTEN/NOTIFY ĐÁNH THỨC planner   ← human hết làm event-bus
-13 VERIFY: wf.why(rule) → đối chiếu HÀNH VI, không chỉ cấu trúc
-14 wf.consume(k, verdict, evidence_id) → PG trước (FK bằng chứng) → Redis sau
-15 git push
+1 wf.context(k) → task+requirement CHA+rule+field+ADR+memory (KHÔNG grep)
+2 BƯỚC 0: hiểu rule (không hiểu ⟹ CẤM code)
+3 code + tag [impl->BR-042]   4 test + tag [utest->BR-042]
+5 wf-lock → commit explicit-path
+6 pre-commit: tag-scan + coverage CÓ-MỤC-TIÊU (chỉ test mang tag rule bị đụng — C6)
+7 wf.report(k, commit_sha) → FK ép commit CÓ THẬT   8 chuông complete
 ```
-**Giữ nguyên:** không viết source · đầu não = phân tích + phân phối + deep-verify · anti-over-hold · anti-idle slot.
-
-### 10.3 CODER — `/icp-multi-coders k`
-```
-1  SessionStart hook → icp-wf law --role=coder --slot=k → LUẬT inject
-2  wf.pickup(k) → task + requirement CHA + business_rule + field DB + ADR + memory
-                  ⟹ KHÔNG grep để hiểu việc
-3  Nghi thức MỞ TASK §2 — BƯỚC 0 MỚI: hiểu rule. Không hiểu ⟹ CẤM viết code
-4  code + tag  [impl->rule~<id>~<rev>]
-5  test + tag  [utest->rule~<id>~<rev>]
-6  wf-lock (Redis, giữ nguyên) → commit explicit-path
-7  pre-commit: oft trace || exit 1
-8  wf.report(k, commit_sha=...)  → FK ép commit CÓ THẬT
-9  chuông complete.oga
-```
-**Giữ nguyên:** không push · không `clean`/`stash`/`reset --hard`.
+**Giữ:** không push · không `clean`/`stash`/`reset --hard`.
 
 ---
 
-## §11. `CLAUDE.md` MỚI + HOOKS
+## §11. `CLAUDE.md` MỚI + HOOKS (v3.1: verify + fallback)
 
-**`CLAUDE.md` teo còn ~6 dòng** (P6 — file sinh sẵn mà stale ⟹ Claude theo luật chết ⟹ **không ai vỡ** ⟹ im lặng; live-read **không có chế độ stale**):
-
+**`CLAUDE.md` teo ~6 dòng** (P6):
 ```markdown
 # ICP — Luật
-Luật THẬT nằm trong workflow DB, được inject vào context lúc mở phiên.
-Nếu bạn KHÔNG thấy luật trong context → DB workflow chết → DỪNG, báo human. KHÔNG làm gì.
+Luật THẬT nằm trong workflow DB, inject vào context lúc mở phiên.
+KHÔNG thấy luật trong context → DB workflow chết → hook đã fallback luật-file V1 + cảnh báo. Nếu cả file này cũng trống → DỪNG, báo human.
 CẤM sửa file này. Sửa luật = sửa trong DB (`icp-wf law edit`).
 ```
 
-**Hooks — cơ chế, không phải luật:**
+**BỐN file NẠP-VÀO-ĐẦU = STUB MỎNG (KHÔNG gom — mỗi cái ở path harness cần) [HUMAN]:**
 
-| Hook | Chạy gì | Mua được gì |
+| File | Path | Stub trỏ | Nguồn thật |
+|---|---|---|---|
+| `CLAUDE.md` (~6 dòng) | repo root | `SessionStart` → `icp-wf law` | PG `law` + INDEX SCRIPT |
+| `MEMORY.md` (~4 dòng) | `~/.claude/.../memory/` | `SessionStart` → `icp-wf fact_index` | PG — fact-index nhẹ |
+| `master-planners` (~5 dòng) | **`.claude/skills/`** (C7) | việc đầu: `icp-wf persona planner` | PG `skill` + memory planner |
+| `master-coders k` (~5 dòng) | **`.claude/skills/`** | việc đầu: `icp-wf persona coder --slot=k` | PG `skill` + memory coder + Redis slot |
+
+> **v3.1 (C7): master-* = SKILL** (`.claude/skills/`, khuyến nghị cho mới; commands vẫn chạy). Skill nạp on-invoke, hỗ trợ frontmatter điều-khiển-gọi.
+
+**HOOKS — ĐÃ VERIFY (v3.1):**
+
+| Hook | Chạy | Mua được (verified) |
 |---|---|---|
-| **`SessionStart`** | `icp-wf law --role=$ROLE` → `additionalContext` (stdout cũng tự thành context) | luật **luôn tươi**, không file, không drift. **Fail-closed**: DB chết ⟹ in `STOP` |
-| **`UserPromptSubmit`** | `icp-wf state --slot=k` | state tươi **mỗi lượt** (chống B2) |
-| **`PreToolUse`** trên `Edit`/`Write` | path thuộc **file SINH RA** (`docs/**`, `memory/**`, `doc/req/**`) → `permissionDecision: "deny"`, reason *"file này generate từ DB — sửa bằng `icp-wf`"* | **quy ước → RÀNG BUỘC.** Không phải luật (31%) — Claude **không gọi nổi** |
+| **`SessionStart`** (Ⓐ) | `icp-wf law` (mù vai) + `fact_index` → `additionalContext` | **inject vào context: XÁC NHẬN.** ⚠ **FALLBACK (C5/B7):** PG sống → luật-DB; PG chết → **luật-file V1 + cảnh báo to** (KHÔNG brick V1). |
+| **`UserPromptSubmit`** | `icp-wf state --slot=k` | **inject mỗi lượt: XÁC NHẬN** (chống B2) |
+| **`PreToolUse`** `Edit`/`Write` | path file SINH RA → `permissionDecision:"deny"` | **chạy TRƯỚC permission-check, chặn cả `--dangerously-skip-permissions`; hook chỉ SIẾT không NỚI: XÁC NHẬN.** Quy ước → RÀNG BUỘC |
 
-**⚠ `PreToolUse` KHÔNG chặn `apps/`/`packages/`** — code là file-nguồn, coder phải `Edit` bình thường.
-**⚠ `PostToolUse` KHÔNG chặn được** (tool đã chạy) ⟹ **không dùng nó làm cơ chế ép**.
+**⚠ PreToolUse KHÔNG chặn `apps/`/`packages/`** (code = file-nguồn). **PostToolUse KHÔNG dùng làm ép** (tool đã chạy).
+**PERSONA PHẢI DẠY DÙNG TOOL [HUMAN]:** planner *"wf.trace tới DRY trước khi cắt · wf.exists+probe trước khi đặt BR · wf.why verify HÀNH VI"* · coder *"wf.context (KHÔNG grep) · không hiểu rule ⟹ dừng · tag · wf.scripts"*. Thiếu persona-dạy-tool ⟹ có tool mà quay lại grep.
 
 ---
 
-## §12. MCP — CÔNG CỤ CLAUDE GỌI
+## §12. HAI CỬA TỚI DB — CLI (boot) vs MCP (trong phiên) — CHUNG RUỘT [HUMAN]
+
+Boot là **bash thuần** (SessionStart, chưa có LLM loop) ⟹ KHÔNG gọi MCP được. Hai cửa, cùng một Postgres, **cùng thư viện truy vấn (Python — B10):**
 
 ```
-wf.law(role, slot)          -> luật đúng vai (SessionStart dùng)
-wf.context(task)            -> task + requirement + rule + field + ADR + memory   ← thay GREP
-wf.trace(mô tả)             -> VÒNG LẶP §8: ứng viên → nơi áp → neighbor → DRY
-wf.why(node)                -> requirement cha + rule + rationale + field + code + test + slice
-wf.impact(node)             -> mọi thứ VỠ nếu sửa cái này
-wf.exists(mô tả)            -> wf.trace + GỢI Ý probe để tự chứng minh
-wf.harvest(test_id)         -> test xanh + chưa có rule → đề xuất rule + coverage chỉ code
-wf.orphans()                -> W-ID / requirement / rule / memory mồ côi
-wf.status | dispatch | pickup | report | consume   -> thay scripts/relay (Redis)
+CỬA 1 — icp-wf CLI (bash → workflow-PG · BOOT)
+   icp-wf law            → luật CHUNG + INDEX SCRIPT      ← CLAUDE.md stub (Ⓐ)
+   icp-wf fact_index     → fact-index nhẹ                  ← MEMORY.md stub (Ⓐ)
+   icp-wf persona <role> → persona + memory role + status  ← master-* stub (Ⓑ)
+
+CỬA 2 — wf.* MCP (Claude → workflow-MCP → workflow-PG · TRONG PHIÊN)
+   ── v3.1: ÍT TOOL (2 dùng 80% thời gian, mỗi schema tốn context mọi phiên) ──
+   wf.context(task)   → task+requirement+rule+field+ADR+memory   ← thay GREP  (⭐ dùng nhiều nhất)
+   wf.why(node)       → requirement cha+rule+rationale+field+code+test+slice  (⭐ verify HÀNH VI)
+   ── phụ (mở khi cần) ──
+   wf.trace · wf.exists · wf.harvest · wf.scripts · wf.orphans
+   wf.status|dispatch|pickup|report|consume  → thay scripts/relay
+
+Ở đâu — TẤT CẢ workflow-space Python (B8/B10), KHÔNG apps/packages:
+   icp-wf CLI · workflow-MCP · thư viện truy vấn · migration workflow-DB · adapter CodeGraph
+   → dir `workflow/` (venv riêng) · workflow-Postgres instance riêng (DB-per-project §5.8)
 ```
 
-**Luật cứng đi kèm:** `wf.exists` trả *"không tìm thấy"* = **ứng viên rỗng, KHÔNG phải bằng chứng vắng mặt**. Chỉ **chân 4 (probe) chạy thật** mới được kết luận.
+> **CHUNG RUỘT:** `icp-wf` CLI (bash→PG, boot) và `wf.*` MCP (Claude→PG, làm) **import cùng thư viện truy vấn Python**. Một logic, hai cửa, **cả hai của WORKFLOW, KHÔNG dính project (B8).**
+
+**Luật cứng:** `wf.exists`/`wf.trace` trả "không tìm thấy" = **ứng viên rỗng, KHÔNG phải bằng chứng vắng mặt**. Chỉ **probe (chân 4)** mới kết luận.
+
+**§12.1 re-ranker = HOÃN** (đã nói §7). Lọc 50→6 ứng viên = **RE-RANK (chấm điểm), KHÔNG reasoning** — nếu cần thì `bge-reranker-v2-m3` (568M, đa ngôn ngữ, CPU), KHÔNG LLM-nhỏ-suy-luận (dính §14-danger). Quyết DRY/KHUNG = PLANNER+PROBE, CẤM model nhỏ.
 
 ---
 
-## §13. GENERATE — CHO AI, KHÔNG CHO CLAUDE
+## §13. GENERATE — CO LẠI GẦN BẰNG KHÔNG
 
-**Chạy khi DB ĐỔI** (không phải lúc invoke) → sinh lại file bị ảnh hưởng → **commit CÙNG commit đó**. Đúng nếp `gen-facts` đang chạy (DoD §5).
+Chạy **khi DB ĐỔI** → sinh lại file ảnh hưởng → commit CÙNG commit.
 
-| Kẻ đọc file | File | Vì sao không query được |
+| Kẻ đọc | File | Ghi chú |
 |---|---|---|
-| **harness** | `memory/*.md` + `MEMORY.md` | harness tự nạp lúc mở phiên |
-| **OFT** | `doc/req/*.md` | tool file-based |
-| **human** | `docs/**` | bạn đọc bằng mắt |
-| **git** | tất cả | kho cuối + **diff để bạn review** |
+| harness | `MEMORY.md`=STUB (kéo fact-index) · `memory/*.md` shared = generate **CÓ ĐK** (§5.6 chưa đo) | stub, body shared chỉ sinh nếu recall quét-thư-mục |
+| ~~OFT~~ | ~~`doc/req/*.md`~~ | **BỎ** — tag scan tree-sitter (MUA CodeGraph) |
+| human | ~~`docs/**`~~ → **hỏi planner "list ..."** | duyệt Ý NGHĨA ở cổng A1 |
+| git | requirement/rule/adr **CHỈ DB** ⟹ `pg_dump` là kho cuối | backup sinh tử |
 
-> **Claude KHÔNG nằm trong bảng này.** Claude **hỏi**, không đọc. Đó là toàn bộ chỗ mua được token.
-> Nếu invoke → generate → Claude đọc `.md`, thì mình xây cả cái DB để sinh ra **đúng đống file đang có sẵn**. **Mua 0 token. Đó là mua công.**
-
-**`test_no_dangling_generated_file()`**: `generate(DB) ≠ file` ⟹ **ĐỎ**. Đây là kẻ-ăn của generate, và nó chạy trong `pnpm test` — **không phụ thuộc CI đang chết**.
+> **Claude KHÔNG trong bảng — Claude HỎI, không đọc file.** Sau bỏ OFT+docs-human+MEMORY-stub: generate ≈ **KHÔNG**, chỉ còn body `memory scope=shared` NẾU recall quét-thư-mục.
 
 ---
 
-## §14. INGEST — ĐO, KHÔNG KHAI
+## §14. INGEST — ĐO, KHÔNG KHAI (v3.1: incremental, MUA code-graph)
 
-| Nguồn | Ra cái gì | origin |
+| Nguồn | Ra | origin |
 |---|---|---|
-| **`pg_constraint`** (`conrelid`+`conkey`) | 121 `business_rule` + `constrains → column` | **measured** |
-| `information_schema` | `table` · `column` | **measured** |
-| **`oft trace`** → `trace.xml` | `impl` · `utest` · `itest` | declared |
-| **coverage** (`vitest --coverage` reporter **`json`** · `pytest --cov --cov-report=json`) | `covers` (test → function) | **measured** |
-| `git log` | `commit` · `touches` | **measured** |
-| `infra/migrations/*.sql` | `migration` · `next` | **measured** |
-| tree-sitter / SCIP | `file` · `function` · `test` | **measured** |
+| `pg_constraint` (`conrelid`+`conkey`) | 121 `business_rule` + `constrains`→column | measured |
+| `information_schema` | table · column | measured |
+| **tree-sitter tag-scan (MUA CodeGraph, C3)** | `impl`·`utest`·`itest` — quét comment `[impl->BR-042]` | declared |
+| **coverage per-lang** | `covers` (test→function) | measured |
+| `git log` | commit · touches | measured |
+| `infra/migrations/*.sql` | migration · next | measured |
+| **CodeGraph/GitNexus (MUA)** | file · function · test (resolve fqn) | measured |
+| `scripts/*` đăng ký | script + reads/emits | declared |
 
-**⚠ Repo hiện dùng `reporter: ['text','json-summary']`** — `json-summary` **chỉ cho tổng số**. Phải đổi thành **`json`** để có `fnMap` (tên hàm) + `f` (số lần gọi). **`pytest-cov` chưa có ở `apps/ai`/`apps/mcp`** — phải thêm.
-**⚠ SCIP định danh theo TÊN** (`src/foo.ts/MyClass#method().`) ⟹ dùng SCIP để **resolve**, **KHÔNG** lấy chuỗi SCIP làm PK.
-**Danh tính code không cần ổn định** — cạnh **đo** được **dựng lại toàn bộ mỗi lần chạy**; đổi tên hàm ⟹ node mới, cạnh mới, node cũ `CASCADE`. **Không cần content-addressing.**
+**§14.1 v3.1 — MUA code-graph, cắm qua ADAPTER (C3, P10):** KHÔNG tự dựng tree-sitter→graph. Cắm **CodeGraph/GitNexus** qua MCP; workflow-DB giữ **cạnh rule↔symbol** (khoá theo **fqn**, resolve qua CodeGraph, **KHÔNG làm PK** — §15). Adapter **thay được** (CodeGraph có thể bị hãng lớn bóp/bỏ) ⟹ lớp răng KHÔNG dính ruột nó.
+
+**§14.2 v3.1 — CADENCE + ATOMICITY (C6, sửa §20 #2):**
+- **pre-commit (coder):** tag-scan + coverage **CÓ MỤC TIÊU** (chỉ chạy test mang tag của rule bị đụng) — **giây, không phút.**
+- **đóng-slice (planner):** cross-check tag×coverage **TOÀN CỤC**.
+- **ingest INCREMENTAL** (không drop+rebuild toàn bộ): chỉ dựng lại node/edge của file thay đổi (git diff), **trong 1 transaction** (query thấy trước-hoặc-sau, không thấy giữa). Neo review-state ở khoá ổn định (§5.4) nên incremental KHÔNG mất suspect.
+
+**⚠ SCIP định danh theo TÊN** ⟹ resolve, KHÔNG làm PK. Danh tính code không cần ổn định (cạnh đo dựng lại mỗi lần; đổi tên ⟹ node mới, cũ CASCADE).
+
+**⚠ Ngôn ngữ MỚI [HUMAN]:** khai (1) grammar tree-sitter + map comment/function (~20-50 dòng+test), (2) coverage tool → cạnh `covers`. Không viết parser mới. Đường lui: OFT-as-importer riêng nếu tree-sitter gắn-tag khó.
 
 ---
 
@@ -577,18 +678,19 @@ wf.status | dispatch | pickup | report | consume   -> thay scripts/relay (Redis)
 
 | Không làm | Vì sao |
 |---|---|
-| **generate CODE** | trần MDA. Unison/MPS sống vì **sở hữu ngôn ngữ** — B5 nói mình **không**. Darklang chết đúng ở đây, **và LLM là lý do họ chết** |
-| **lưu `body` của code trong DB** | 2 nhà ⟹ bài toán đồng bộ ⟹ phải chặn `Edit` + parser + round-trip. Lưu **`fingerprint`** là đủ để bắt drift |
-| **chặn `Edit` trên `apps/`** | hết cần (không nhân bản body) |
-| **`confidence real` trên cạnh** | cạnh xác suất **không ràng buộc được gì**; `CHECK` không cắn được số 0.4. Mơ hồ chỉ nằm ở **VIEW suy ra** |
-| **tách `rules`/`symbols` 2 bảng** | ⟹ `edge.src` đa hình ⟹ **không FK nổi** ⟹ tái tạo bệnh ~24 mũi tên hư vô |
-| **`fqn` làm PK** | đổi tên ⟹ **mọi cạnh chết im lặng**. Unison giải bằng hash; mình giải bằng **đo lại** |
-| **Neo4j** | vài triệu cạnh — `WITH RECURSIVE` thừa. Quyết theo **nhãn** thay vì **số** là đúng cái §14 cấm |
-| **vector DB riêng** | phải JOIN vector với rule ⟹ tự tạo 2-phase commit |
-| **rule/requirement trong YAML/Confluence/Notion** | không diff, không CI, **không ép được** — đúng hiện trạng đang muốn thoát |
-| **bỏ Redis** | P8 — relay không có bệnh đo được **[HUMAN]** |
-| **mutation testing** | chính xác nhất (nhân quả, không phải đi ngang qua) nhưng **đắt** — để dành |
-| **rời Postgres** | chỉ khi ĐO được: >20M cạnh & traversal >500ms · cần suy diễn bắc cầu (→ Datalog) · >50M vector |
+| **generate CODE** | trần MDA. Darklang chết đúng đây, **LLM là lý do họ chết**; Tessl bác bằng $125M non-deterministic |
+| **lưu `body` code trong DB** | 2 nhà ⟹ đồng bộ ⟹ lưu `fingerprint` là đủ bắt drift |
+| **TỰ DỰNG code-graph (v3.1)** | commodity + dễ lỗi-thời nhất (§3) — MUA CodeGraph/GitNexus (P10/C3) |
+| **node một-bảng-mọi-cột (v3.1)** | CHECK theo-kind = bùa; thin-node + bảng-con = NOT NULL thật (C1) |
+| **RLS/GUC 3-field cho 1-project (v3.1)** | store dẫn xuất; DB-per-project + role rẻ+mạnh hơn (C2) |
+| **`fqn` làm PK** | đổi tên ⟹ mọi cạnh chết im lặng. Giải bằng **đo lại** |
+| **Neo4j / vector-DB riêng** | vài triệu cạnh — PG đủ; JOIN vector với rule tránh 2-phase commit |
+| **rule trong YAML/Confluence/Notion** | không diff, không CI, **không ép** |
+| **OFT (OpenFastTrace)** | buộc requirement thành FILE = bản sao DB = drift + Java dep. Tag-scan tree-sitter thay |
+| **bỏ Redis** | P8 — relay không bệnh đo được [HUMAN] |
+| **harvest 378k dòng (v3.1)** | R10 — flood cổng human (bottleneck correctness); harvest **CHỌN LỌC** |
+| **re-ranker/LLM-nhỏ-lọc NGAY** | chưa cần; probe quyết, không phải reranker |
+| **rời Postgres** | chỉ khi ĐO: >20M cạnh & traversal>500ms · >50M vector |
 
 ---
 
@@ -596,50 +698,240 @@ wf.status | dispatch | pickup | report | consume   -> thay scripts/relay (Redis)
 
 | # | Rủi ro | Đối phó |
 |---|---|---|
-| R1 | **Claude gắn tag SAI** — *"nó rất muốn làm bạn hài lòng"* | **cross-check coverage §8** — cơ chế **DUY NHẤT** phát hiện. Không tuỳ chọn |
-| R2 | **coverage cho TẬP CHA** — test `@rule-X` cũng chạy qua logger/ORM/DI | xếp hạng theo **độ đặc hiệu** lúc **query** (không lưu). Chính xác thật = mutation testing (hoãn) |
-| R3 | **embedding gần ≠ logic giống** (negation) | P4 — semantic chỉ là ứng viên; **probe quyết** |
-| R4 | **121 rule hôm nay VÔ HÌNH với semantic** (không có chữ) | **harvest = việc số 1**: Claude đề xuất `statement_vi/en` + `rationale` từ `CHECK`+cột+code quanh → human duyệt A1 → probe **chắc chắn XANH** (Postgres đang ép) ⟹ **an toàn nhất chương trình** |
-| R5 | **`fingerprint` quá nhạy** — Doorstop bắt review lại **vì đổi whitespace** | chuẩn hoá text **trước khi** hash |
-| R6 | **`rev` bump để chữa cháy** | bump ⟹ tag cũ thành lỗi ⟹ phải sửa từng chỗ; test khẳng định nghĩa CŨ sẽ **ĐỎ** ⟹ lộ trong diff |
-| R7 | **Xây trên cổng đã chết** — `ci.yml` `disabled_manually`, guards runner **offline**, 32/40 lần `queued` | mọi kẻ-ăn đặt vào **`pnpm test`** + **pre-commit** + **`PreToolUse`** — thứ **chạy local**, không có chế độ `queued`. **CI hỏng là việc của workflow cũ, không phải luật cho workflow mới** |
-| R8 | **`grep` nói dối im lặng** vì locale (4 lần/buổi) | mọi script ingest ép **`LC_ALL=C`**. Và đây là lý do sâu nhất FK đáng giá: **nó không có chế độ im lặng** |
-| R9 | **Tôi thiết kế trước khi nhìn** — 7 lần bị dữ liệu bác trong 1 buổi | mọi khẳng định trong file này kèm **path/lệnh tái lập**. Chưa đo thì ghi "chưa đo" |
+| R1 | Claude gắn tag SAI | **cross-check coverage** (cơ chế DUY NHẤT) — §14.2 pre-commit có-mục-tiêu + đóng-slice toàn-cục |
+| R2 | coverage cho TẬP CHA (logger/ORM/DI) | xếp hạng theo độ-đặc-hiệu lúc query; chính xác thật = mutation testing (hoãn) |
+| R3 | embedding gần ≠ logic (negation) | P4 — semantic ứng viên; probe quyết |
+| R4 | 121 rule VÔ HÌNH với semantic | **harvest = việc số 1** (§17 bước 2): đề xuất statement+rationale → human duyệt A1 → probe chắc XANH |
+| R5 | `fingerprint` quá nhạy (whitespace) | chuẩn hoá text TRƯỚC hash |
+| R6 | rule đổi nghĩa né review | `fingerprint` → `suspect_edge` tự động, độc lập rev (§5.4) |
+| R7 | Xây trên cổng đã chết (CI) | kẻ-ăn ở `pnpm test`+pre-commit+`PreToolUse` (chạy local). CI hỏng = việc V1 |
+| R8 | `grep` nói dối im lặng (locale) | script ingest ép `LC_ALL=C` |
+| R9 | Tôi thiết kế trước khi nhìn (7 lần bị bác/buổi) | mọi khẳng định kèm path/lệnh; chưa đo ghi "chưa đo" |
+| **R10** | **KHÔNG AI VỠ khi rule sai NGHĨA (v3.1)** | probe chứng minh *tồn tại*, không *đúng-ý*. rationale sai / statement lệch sắc thái ⟹ FK không cắn, probe vẫn XANH. Kẻ-ăn duy nhất = **cổng A1 human** (đúng hạng-31%). **KHÔNG có vá rẻ ở khung tổng quát** ⟹ (a) **giữ rule ÍT** (human còn sức đọc), (b) harvest **chọn lọc**, (c) **vá thật chỉ ở ngách hình-thức-hoá-được** (§22 — formal-correctness) |
+| **R11** | **Phụ thuộc CodeGraph/GitNexus (v3.1)** — có thể bị hãng lớn bóp/bỏ | **adapter thay-được**; lớp răng (rule↔symbol, FK-bằng-chứng) KHÔNG phụ thuộc ruột nó |
+| **R12** | **`claude -p` exit-code phân biệt xong/cần-help/crash chưa rõ (v3.1)** | verify: headless expand = CÓ; exit-code **chưa đủ tài liệu** ⟹ **test trong §19 wrapper**; cô lập phiên bằng `--session-id`/`--no-session-persistence` |
+| **R13** | **Auto-formalize NL→property có TRẦN (v3.2, sản phẩm)** — không phải requirement nào cũng hình-thức-hoá-được | Khoanh scope vào **lớp hình-thức-hoá-được của ngách** (safety-property·state-machine·biên-số·MISRA/AUTOSAR-contract); phần còn lại rơi về răng-nhẹ + cổng human. **KHÔNG hứa chứng minh mọi thứ.** Đo tỉ lệ formal-hoá-được trên corpus mồi TRƯỚC khi tuyên năng lực |
+| **R14** | **Chu kỳ bán + qualification NHIỀU NĂM (v3.2)** — ngách quản-chế chậm, cần track-record | Đây là **chi phí của "uncopyable"** (hào cần thời gian, §22.1-L5) — chấp nhận có chủ ý. Vào bằng **design-partner Tier-1/2** (nhanh hơn prime); dùng continuous-certification tạo doanh thu SỚM trước khi đạt full-qualification |
 
 ---
 
-## §17. ĐƯỜNG ĐI — THỨ TỰ CÓ LÝ DO
+## §17. ĐƯỜNG ĐI — V3-LITE, MỘT SỐ ĐO PHỦ ĐỊNH (v3.1, C9/P11)
 
-| # | Việc | Vì sao thứ tự này |
-|---|---|---|
-| **1** | Schema + `icp-wf` CLI + **ingest 70 memory** → generate lại `memory/*.md` + `MEMORY.md` → **`diff` phải RỖNG** | **nhỏ nhất mà chứng minh nhiều nhất**: round-trip đóng ở memory ⟹ đóng ở **mọi `.md``. memory đang **hoàn hảo** (70/70) ⟹ nếu round-trip vỡ, vỡ vì **thiết kế**, không vì dữ liệu bẩn |
-| **2** | **Harvest 121 `CHECK`** → `business_rule` + `statement_vi/en` + `rationale` + `constrains → column` | **R4** — không có bước này thì `pgvector` tìm ra **số không**. Và đây là chỗ **rule đã có răng, chỉ thiếu lời** ⟹ an toàn nhất |
-| **3** | `SessionStart` hook + `wf.law` + `CLAUDE.md` teo | luật tươi trước, rồi mới nói tới việc |
-| **4** | ingest ADR + slice + BACKLOG → generate → `diff` rỗng | kho lớn hơn, sau khi round-trip đã chứng minh |
-| **5** | `wf.context` + `wf.trace` + `wf.why` (MCP) | planner/coder bắt đầu **hỏi thay vì quét** |
-| **6** | **`CLAUDE.md §2` bước 0 + `ICP_WEB_PLAN §8` chiều rule + VERIFY-DEPTH thêm hành vi** | **chữa §1.2** — chỉ làm được sau khi có `wf.context` |
-| **7** | Hấp thụ `seam` + `verdict` + `report` + ledger → PG (FK bằng chứng) | chữa 31%/20%/xoá-vĩnh-viễn |
-| **8** | RTM leg: OFT + coverage `json` + `pytest-cov` + cross-check | **cuối** — view khó nhất, cần mọi thứ trên |
+**Nguyên tắc:** chứng minh nền rẻ TRƯỚC; **đo đúng MỘT số** rồi mới làm to. V3 dựng CẠNH V1 (§18). **Biết sai sau 3 tuần thay vì 6 tháng.**
 
-**Bước 1 và 2 độc lập nhau** ⟹ chạy **song song** 2 slot được.
+**V3-LITE (2–3 tuần, ship + đo được):**
+1. **Bước 2 nguyên vẹn — viết lời cho 121 CHECK** (`statement_vi/en`+`rationale`). Giá-trị/rủi-ro tốt nhất; rule đã có răng, chỉ thêm lời.
+2. **workflow-DB: DB-per-project, thin-node + bảng-theo-kind** (§5). KHÔNG RLS/GUC.
+3. **KHÔNG tự dựng code-graph — cắm CodeGraph/GitNexus qua adapter.** workflow-DB giữ requirement·business_rule·adr·slice·task·verdict + cạnh rule↔symbol (fqn resolve).
+4. **`wf.why(rule)` + `wf.context(task)` — 2 tool** (không 10).
+5. **Persona planner: verify HÀNH VI vs rule + consume ghi verdict với FK evidence.**
+6. **Guard `pnpm test`:** rule không test = ĐỎ · requirement mồ côi = ĐỎ · verdict.evidence không có commit = ĐỎ.
+
+> **SỐ ĐO PHỦ ĐỊNH:** verdict "có nội dung" từ **20% → ?** sau 20 task. **Không nhúc nhích ⟹ §5–§14 không cứu được** — dừng, nghĩ lại. Đây là chân-4/probe áp cho CHÍNH chương trình.
+> ⚠ **Đo KỶ LUẬT, KHÔNG đo tính-ĐÚNG rule** (R10). Tính-đúng chỉ đo được ở ngách formal (§22).
+
+**Chi tiết bootstrap (§20 #3 🔴):** populate DB **DƯỚI V1** (icp-multi-*, đọc file) TRƯỚC; **CHỈ flip CLAUDE.md→stub SAU khi DB có law** (+ hook fallback C5).
+
+**Bước sau (khi V3-lite đo tốt):** nạp ADR+slice+BACKLOG · lớp truy-vết đầy đủ (tag scan + cross-check) · §21 sản phẩm.
+
+**Bỏ/hoãn:** B9 RLS (§22 SaaS) · re-ranker (§7) · harvest 378k (R10) · **§19 master-auto bash → thử Dynamic Workflows trước** (nếu nó lo được vòng dispatch→verify→dispatch thì §19+planner-wake tan).
 
 ---
 
-## §18. SONG SONG — KHÔNG PHÁ V1 **[HUMAN — B7]**
+## §18. SONG SONG — KHÔNG PHÁ V1 [HUMAN — B7] (v3.1: sửa rollback)
 
-**Toàn bộ V3 dựng CẠNH V1, chưa bao giờ đè lên nó:**
-
-| V1 (giữ nguyên, luôn chạy được) | V3 (dựng mới cạnh bên) |
+| V1 (giữ nguyên, lưới an toàn) | V3 (dựng cạnh) |
 |---|---|
-| `.claude/commands/icp-multi-planners.md` | `.claude/commands/master-planners.md` |
-| `.claude/commands/icp-multi-coders.md` | `.claude/commands/master-coders.md` |
-| relay Redis (`scripts/relay`) | `wf.*` MCP + workflow-DB (Postgres) |
-| `CLAUDE.md` (209 dòng, file) | `CLAUDE.md` teo + `SessionStart` hook inject |
+| `.claude/commands/icp-multi-*.md` | `.claude/skills/master-*` (C7) |
+| relay Redis | `wf.*` MCP + workflow-DB (Python) |
+| `CLAUDE.md` 209 dòng (file) | `CLAUDE.md` teo + SessionStart inject |
 
-**Cách chuyển:** hôm nay bạn gõ `icp-multi-coders`; sau khi V3 chạy ổn, bạn gõ **`master-coders`** thay thế. Không có "cutover" một-lần — **hai bộ tồn tại đồng thời**, bạn chọn bằng cái tên bạn gõ.
+**Chuyển bằng cái tên bạn gõ:** `icp-multi-coders` → `master-coders`. Hai bộ đồng thời.
 
-**Rollback = 0 giây:** V3 hư ⟹ gõ lại `icp-multi-*` ⟹ về nguyên trạng. V1 chưa bị đụng nên **không có gì để khôi phục**.
+> **⚠ ROLLBACK KHÔNG PHẢI "0 giây" (C5/B7 sửa):** CLAUDE.md + SessionStart Ⓐ **dùng chung V1+V3, role-agnostic**. Flip CLAUDE.md→stub fail-closed ⟹ PG chết thì **V1 CŨNG chết** (lưới nối vào thứ nó bảo hiểm). **Sửa:** hook Ⓐ **fallback có điều kiện** (PG sống→luật-DB · PG chết→luật-file V1 + cảnh báo to). Rollback thật = giữ fallback HOẶC `git revert CLAUDE.md`, **KHÔNG** phải "gõ lại tên cũ".
 
-**⚠ Điều KHÔNG được lẫn:** "skill mới" **không** có nghĩa skill chuyển vào DB — skill vẫn là **file** (`.claude/commands/master-*.md`). Cái đổi là **skill mới gọi `wf.*` (hỏi DB) thay vì `relay` (đọc ống)** + nạp luật qua `SessionStart` hook. "master claude" = phiên Claude nạp skill mới, trỏ workflow-DB — **vẫn là Claude Code**, chỉ khác bộ luật nạp + công cụ gọi.
+**⚠ KHOÁ KHÔNG tách được (B4):** V1+V3 ghi **cùng cây git** ⟹ V3 dùng LẠI `wf-lock` Redis của V1 (cùng một khoá), KHÔNG dựng khoá riêng. **Trí nhớ tách đôi được, KHOÁ thì KHÔNG.**
 
-**⚠ Chỗ hai bộ ĐỤNG nhau — phải cô lập:** cả hai ghi cùng **một cây git** (B4). Nếu chạy V1 và V3 **cùng lúc**, `wf-lock` (Redis) của V1 và lock của V3 phải là **cùng một khoá** — nếu không, hai bộ giẫm chân trên cây git. ⟹ **V3 dùng LẠI `wf-lock` Redis của V1** (đã là lý do §9 giữ Redis), KHÔNG dựng khoá riêng. Đây là ràng buộc cứng: **trí nhớ tách đôi được, KHOÁ thì KHÔNG.**
+---
+
+## §19. `master-auto` — BỘ LÁI TỰ ĐỘNG (v3.1: mắt xích gốc = CÓ, verified) [HUMAN]
+
+**Chạy happy-path một mình, CHỈ chuông khi cần human.** wrapper **bash** (human chạy 1 LẦN), KHÔNG phải Claude skill (phiên không tự spawn phiên — B3).
+
+**PHẠM VI — chỉ PHA THỰC THI:**
+```
+PHA THIẾT KẾ (human hands-on)          PHA THỰC THI (master-auto tự lái)
+requirement→rule→cắt task→A1 DUYỆT ──► task ĐÃ DUYỆT→code→verify→consume→task kế
+  ▲ chốt-khung, judgment cao (§14b)       ▲ lặp lại, ít judgment mới
+```
+
+**Ranh giới AUTO ↔ CHUÔNG:**
+
+| AUTO | CHUÔNG → human |
+|---|---|
+| planner phân tích trong scope ĐÃ duyệt → cắt task | A1 DESIGN (requirement/slice MỚI — cổng ngữ nghĩa) |
+| dispatch→code→report→verify→consume→task kế | needs-decision / blocked (mơ hồ · stop-condition §4) |
+| rework loop | seam mở · planner không đạt DRY / nghi khung (§14) |
+| context-manage (fresh-per-task) | verify high-consequence · crash/exit≠0 |
+
+**Cơ chế:**
+```
+master-auto (human chạy 1 lần):
+  loop poll relay:
+    slot 'dispatched'   → spawn: claude -p "/master-coders k"  --session-id <uuid>  (verified expand)
+    report chờ consume  → spawn: claude -p "/master-planners"   (verify+consume+dispatch)
+    requirement mới     → spawn planner
+  marker cần-human (needs-decision·blocked·seam·macro:pending-human) → 🔔 CHUÔNG, DỪNG, chờ human
+  + kill-switch + trần số-restart
+```
+
+**v3.1 — ĐÃ VERIFY:**
+- **"mắt xích gốc" `claude -p "/master-coders k"` expand = CÓ.** Slash command/skill expand trong headless print-mode (ngoại lệ: lệnh TTY-only như `/login`). Spawn loop từ bash **an toàn**.
+- **Cô lập phiên:** dùng `--session-id <uuid>` mỗi lần HOẶC `--no-session-persistence` (tránh interleave transcript).
+- **⚠ CÒN CHƯA ĐO (R12):** exit-code phân biệt xong/cần-help/crash **chưa đủ tài liệu** ⟹ **test trong wrapper** (map exit-code → hành vi), hoặc dùng marker relay (đã có) thay exit-code.
+
+**Context: mỗi task một phiên SẠCH** ⟹ B1 tan mà không cần đo 85%; state ở Redis/DB nên phiên vứt được (`wf.context` đọc lại); không compact.
+
+**⚠ RANH GIỚI SINH-TỬ:** human ra khỏi vòng ⟹ **lớp kẻ-vỡ (FK-bằng-chứng · cross-check · test) là backstop DUY NHẤT** chống "đóng-dấu lười" (verdict 20%). Kẻ-vỡ yếu = auto nhân lỗi im lặng. **§14b: khung sai thì planner không tự biết** ⟹ **cổng A1 human = chốt-khung chính, KHÔNG BAO GIỜ bỏ.**
+
+**⚠ THAY THẾ CÂN NHẮC:** **Dynamic Workflows** (native: agent/parallel/pipeline/phase, script 0-token, resume, concurrency-cap, schema-validate) lo được vòng dispatch→verify→dispatch **tốt hơn bash** (§19 mất resume/schema/cap). **Thử Dynamic Workflows TRƯỚC khi viết bash master-auto** — nếu đủ thì §19+planner-wake tan. ⚠ Lưu ý chi phí fan-out (memory `avoid-workflow-fanout-cost`).
+
+---
+
+## §20. GUARDRAIL TRIỂN KHAI — bắt lúc CODE (v3.1: 3🔴 đã nuốt vào thân)
+
+| # | Mức | Vấn đề | Guardrail — **trạng thái v3.1** |
+|---|---|---|---|
+| 1 | ✅ | `reviewed_fp` vỡ khi re-ingest | **ĐÃ SỬA C1/§5.4:** `review_state` neo khoá ổn định `(rule_id, fqn, tag_kind)`, KHÔNG trên edge |
+| 2 | ✅ | ingest cadence + atomicity | **ĐÃ SỬA C6/§14.2:** incremental (git diff) trong 1 transaction; pre-commit có-mục-tiêu, cross-check toàn-cục lúc đóng-slice |
+| 3 | ✅ | bootstrap chicken-egg | **ĐÃ ĐƯA vào §17:** populate DB dưới V1 TRƯỚC; flip stub SAU; **+ hook fallback C5** (V1 không chết khi PG rỗng) |
+| 4 | 🟡 | PreToolUse deny scope | generate ≈ 0 ⟹ deny chỉ cần cho memory-shared body (§5.6) nếu có; nếu generate=0 thì ~không cần |
+| 5 | 🟡 | MEMORY.md-stub rủi nhất | Fallback: riêng MEMORY.md revert generated-index (3 stub kia không đụng) — đo ở §17 bước 1 |
+| 6 | 🟡 | workflow-DB tự migrate | Migration riêng workflow-DB (tách project, B8); số kế tiếp theo FACTS của workflow-DB |
+| 7 | ✅ | B3 scope (master-auto spawn) | Ghi rõ: B3 cấm PHIÊN-spawn-phiên; master-auto (bash ngoài) = ngoại lệ human-uỷ-quyền |
+| 8 | ✅ | body_home CHECK permissive | **ĐÃ SỬA C1:** bảng-theo-kind ⟹ `body NOT NULL` thật cho bảng có body; bảng code không có cột body |
+| 9 | 🟢 | planner fresh-per-report mất context | state-ở-DB (ledger/verdict); thiếu → planner đọc lại qua `wf.status` |
+
+**⟹ Toàn bộ 3🔴 v3.0 ĐÃ nuốt vào thân v3.1. Không cái nào đổi kiến trúc nền ⟹ SẴN SÀNG triển khai V3-lite.**
+
+---
+
+## §21. SẢN PHẨM — RTM-CÓ-RĂNG + PROOF-ENGINE CHO AGENT [chi tiết của §00]
+
+> **Trục chính (§00), KHÔNG tách doc.** Lớp răng rút ra thành **MCP server + PROOF-ENGINE server-side**. Workflow-sicp (§0–§20) dogfood nó.
+
+**LỖ THỊ TRƯỜNG:** 6 tool SDD (Spec Kit · Kiro · OpenSpec · BMAD · Cursor rules · Augment) **sinh spec nhưng KHÔNG ÉP** — spec thôi cai trị code khi generate bắt đầu. **Không tool nào có FK-tới-bằng-chứng, verify HÀNH VI, hay CHỨNG MINH.** Agent sinh code càng nhanh, nút cổ chai dời sang *chứng minh code thoả requirement*. **Không ai đóng vòng "requirement → code có THẬT SỰ thoả không, kèm PROOF".**
+
+**HÌNH SẢN PHẨM — hạ tầng dưới mọi agent (vendor-neutral) + proof-engine kín:**
+```
+   Claude Code · Cursor · Copilot · Devin        ← agent nào cũng cắm (MCP, trung lập)
+                    │  rtm.*
+   ┌────────────────▼──────────────────────────────┐
+   │  RTM-ENGINE (ĐỘC QUYỀN, SERVER-SIDE, §22 hào)  │
+   │  ┌───────────────┐  ┌───────────────────────┐  │
+   │  │ LỚP RĂNG       │  │ PROOF-ENGINE (kín)     │  │  ← lõi uncopyable
+   │  │ requirement    │→ │ auto-formalize:        │  │
+   │  │ business_rule  │  │  req(EARS)→property     │  │
+   │  │ verdict·FK-BC  │  │  (temporal-logic/SMT)   │  │
+   │  │ probe·suspect  │  │ auto-proof: code⊨prop?  │  │
+   │  │ gaps           │  │  → PROOF | counter-ex   │  │
+   │  └───────────────┘  │ CERTIFICATE (ký số)     │  │
+   │       ▲ CORPUS độc quyền (flywheel) nuôi cả 2  │  │
+   └───────┼───────────────────────┬────────────────┘
+           │ adapter (thay được)   │ (tuỳ chọn TEE bọc proof-engine)
+   ┌───────▼───────────────┐       │
+   │ CodeGraph / GitNexus  │  code·coverage (MUA, commodity)
+   └───────────────────────┘
+```
+
+**BỀ MẶT TOOL (ít, mỗi cái dùng nhiều):**
+| tool | làm gì |
+|---|---|
+| `rtm.trace(req)` | requirement → rule ứng viên → nơi áp (§8) |
+| `rtm.why(rule)` | rule → rationale + field + code + test + slice |
+| `rtm.verify(claim, evidence)` | agent tuyên "xong R" → đòi commit/test-run **có thật** (răng nhẹ) |
+| `rtm.probe(rule)` | chạy test khẳng định rule → xanh=đã ép (chân 4) |
+| **`rtm.certify(req, code)`** | **PROOF-ENGINE: req→property→chứng minh→CHỨNG CHỈ ký số** (hoặc counter-example). Đây là cái BÁN (§00 model 1) |
+| `rtm.gaps()` | req không rule · rule không proof · orphan · W-ID chưa tick |
+
+**PROOF-ENGINE — vòng chứng minh (lõi giá trị, vá R10 trong ngách):**
+```
+requirement (EARS/AUTOSAR bán-hình-thức)
+   │ auto-formalize  (LLM + template ngành, tuỳ CORPUS)
+   ▼
+property  (temporal logic / SMT constraint / contract)
+   │ auto-proof  (model-checker · SMT solver · property-based · bounded-MC)
+   ▼
+PROOF ⊨   ──> CERTIFICATE ký số (đưa vào safety-case)   |   PROOF ⊭ ──> counter-example → trả agent sửa
+```
+- **Ranh giới trung thực:** chỉ chứng minh được **lớp requirement hình-thức-hoá-được** (safety-property · state-machine · biên số · MISRA/AUTOSAR-contract). Requirement thuần-NL không formal-hoá được ⟹ rơi về răng-nhẹ (`rtm.verify`/probe) + cổng human. **KHÔNG hứa chứng minh mọi thứ** (R13).
+- **Vì sao đây là moat, không phải feature:** auto-formalize + auto-proof **chất lượng tuỳ CORPUS** (cặp req→property→proof đã-đúng trong ngách). Đối thủ có thuật toán mà **không có corpus** ⟹ formal-hoá sai/sót ⟹ proof vô dụng. §22.
+
+**RĂNG VỚI AGENT:** agent tuyên "xong R" → engine bắt *"chứng minh"*; nếu formal-hoá được → **PROOF hoặc counter-example**, không phải "tin lời". 6 tool kia không có.
+
+**VÌ SAO BÂY GIỜ:** cưỡi sóng agent (infra dưới TẤT CẢ agent, trung lập). Agent viết càng nhiều → càng cần proof → doanh thu per-proof càng lớn (§00).
+
+**MUA vs XÂY (P10):** MUA code-graph (commodity, dễ lỗi-thời) qua adapter; XÂY lớp răng + **PROOF-ENGINE + CORPUS** (§22 — chỗ không ai làm hộ).
+
+---
+
+## §22. HÀO / DEFENSIBILITY — để đối thủ VÀ user không copy [HUMAN 2026-07-17]
+
+**Sự thật cứng (đã verify tận tay):** MCP protocol + schema + node/edge = **copy dễ**. **Hào KHÔNG ở thuật-toán-bí-mật** (sẽ thất bại). Hào **không-copy-được** là tổ hợp 4 chân, trong đó công nghệ là MỘT chân:
+
+| Chân hào | Copy được? | Là thuật-toán/công-nghệ? |
+|---|---|---|
+| **Engine AUTO-PROBE / formal-correctness** — từ requirement tiếng-người **tự tổng hợp test/property quyết định code có thoả**; ngách hình-thức-hoá-được thì **chứng minh formal** rule↔code | **Khó** — deep-tech AI+formal, giữ **server-side** | **ĐÚNG — chân thuật-toán thật. VÀ vá R10** |
+| **Corpus + flywheel** req→probe→kết-quả-audit tích luỹ chéo khách | **Không scrape được** — mật, chậm | feeds engine trên |
+| **Standard / độ-phủ tích hợp** — lớp truy-vết mọi agent cắm vào | Khó khi đã có đà | network effect, first-mover |
+| **Tool-qualification (DO-330)** ngách quản chế | **Gần như không** — năm+tiền+pháp-lý | không, nhưng cộng hưởng |
+
+> **Chân thuật-toán uncopyable = engine auto-probe/formal-correctness giữ SERVER-SIDE** (user không rút ruột được → "user không copy"). Vừa là hào bạn đòi, vừa vá R10.
+
+**NGÁCH quyết định hào-thuật-toán CÓ thật hay chỉ switching-cost:**
+- **Quản chế/an-toàn** (DO-178C hàng-không · ISO 26262 ô-tô · IEC 62304 y-tế): requirement **hình-thức-hoá-được** ⟹ **formal-correctness khả thi = hào thuật-toán thật**; DOORS/Polarion bị ghét+đắt; qualification = hào sâu. Thị trường hẹp, trả cao. ✅ **[DECIDED §00] CHỌN ĐÂY — vertical đầu = ISO 26262 automotive** (formal-hoá-được nhất + Tier-1/2 tiếp cận được).
+- **Fintech/thanh-toán quy chế:** formal một phần; hào từ compliance+corpus hơn formal thuần. (không chọn đầu)
+- **Dev-chung:** KHÔNG hình-thức-hoá-được ⟹ **KHÔNG hào formal**, chỉ switching-cost (yếu trước Cursor/Copilot). ❌ **LOẠI** — vi phạm mục tiêu uncopyable.
+
+**Đối kháng (§14, không bán moat ảo):**
+- Infra-dưới-agent dễ bị hãng agent tự ship traceability ⟹ **chống bằng ngách quản chế + qualification + corpus** (hãng ngang không thèm đụng thị trường hẹp).
+- R10 vẫn cắn ở dev-chung ⟹ **"uncopyable-thuật-toán" ⟺ chọn ngách hình-thức-hoá-được**. Không né được.
+- Phụ thuộc CodeGraph ⟹ adapter (R11); nó là nửa dễ lỗi-thời ⟹ mua đúng, miễn lớp răng không dính ruột.
+
+### §22.1 BÍ MẬT KHÔNG-KHÁM-PHÁ-ĐƯỢC — thiết kế cụ thể [DECIDED]
+
+> **Trung thực trước:** không thể giữ bí mật một THUẬT TOÁN thuần (toán tái lập được — ai đủ giỏi sẽ nghĩ lại ra). Hứa "giấu công thức" = hứa hão. **Cái giữ được** là làm cho **NĂNG LỰC** không tái lập được, kể cả khi thuật toán lộ. Bốn lớp, mạnh dần:
+
+| Lớp | Cơ chế | Chống được gì | Điểm yếu |
+|---|---|---|---|
+| L1 **Server-side tuyệt đối** | engine chỉ chạy trên server ta; client gửi input, nhận output/certificate; **không ship binary** | đọc-code trực tiếp | black-box: đối thủ dò input→output |
+| L2 **Năng-lực-phụ-thuộc-CORPUS** | auto-formalize + auto-proof **chất lượng = f(corpus)**; corpus = cặp req→property→proof→outcome đã-đúng, tích luỹ trong ngách | **lộ thuật toán KHÔNG lộ năng lực** — thiếu corpus thì formal-hoá sai/sót | corpus có thể rò nếu nội gián |
+| L3 **Flywheel** | mỗi khách dùng → corpus dày + engine tune → đối thủ **luôn chậm N tháng dữ liệu**; càng dùng càng xa | đối thủ đuổi kịp | cần đủ khách để quay |
+| L4 **TEE / confidential-computing (tuỳ chọn)** | proof-engine chạy trong enclave (SGX/SEV-SNP); attestation ký; **cả nhà-cloud cũng không soi RAM** | reverse từ hạ tầng · nội gián hạ tầng | phức tạp vận hành; bật khi khách đòi |
+| L5 **Tool-qualification track-record** | certificate được cơ quan chứng nhận chấp nhận qua thời gian (DO-330/26262-8) | đối thủ mới **không có lịch sử** dù copy được tech | mất năm để dựng |
+
+> **Kết:** "bí mật không khám phá được" = **L1+L2+L3 bắt buộc** (server-side + corpus-bound + flywheel), **L4 khi khách quản-chế đòi**, **L5 là hào thời-gian**. Đối thủ copy được **hình**, không copy được **năng lực** (thiếu corpus) lẫn **niềm tin** (thiếu qualification). Đây là "uncopyable" đúng nghĩa kỹ thuật, KHÔNG phải khẩu hiệu.
+
+### §22.2 QUYẾT ĐỊNH [DECIDED — human trao toàn quyền], KHÔNG còn treo
+
+| # | Quyết định | Chốt |
+|---|---|---|
+| 1 | **Ngách** | ✅ Quản-chế/an-toàn; **vertical đầu = ISO 26262 automotive**; engine tổng-quát họ IEC 61508 |
+| 2 | **Bán gì** | ✅ **Bán KẾT QUẢ** (proof/certificate + continuous-certification + evidence-package), **KHÔNG bán seat** (§00). Khoá khách chặt, ít bị copy |
+| 3 | **Người mua đầu** | ✅ **Design-partner Tier-1/Tier-2 automotive** (nhiều, tiếp cận được); đổi tiền lấy phản hồi + corpus mồi. Cụ-thể-hoá lúc go-to-market |
+| 4 | **Bí mật** | ✅ L1+L2+L3 bắt buộc · L4 khi đòi · L5 hào-thời-gian (§22.1) |
+
+**GIÁ TRUNG THỰC (không bán moat ảo):** đây là **deep-tech + pháp-lý NHIỀU NĂM**, KHÔNG phải tool 3 tuần. Formal-hoá tự động từ NL là **bài khó, có TRẦN** (R13) — nên khoanh vào lớp requirement hình-thức-hoá-được của ngách, KHÔNG hứa mọi thứ. Workflow-sicp = **dogfood** validate lớp răng + probe + corpus mồi (§17 V3-lite, đo verdict 20%→?); proof-engine + qualification là **chương trình dài** dựng TRÊN nền đó — cùng MỘT doc, khác nhịp thời gian.
+
+---
+
+## §23. TÓM TẮT — TRẠNG THÁI SẴN SÀNG
+
+- **TRỤC CHÍNH (§00):** sản phẩm = **proof-of-correctness cho code AI sinh, ngách ISO 26262 automotive**; bán **proof/certificate + continuous-certification** (thị trường chưa có); hào **uncopyable** = server-side + corpus-bound + flywheel + (TEE) + qualification (§22.1). MỘT doc thống nhất.
+- **Kiến trúc nền (dogfood):** ỔN ĐỊNH. 3🔴 v3.0 đã nuốt; fix chuyên gia (thin-node · DB-per-project · MUA code-graph · incremental · B7 fallback · R10) đã tích hợp.
+- **Đã verify:** headless skill expand · hook inject · PreToolUse chặn-trước-permission · commands/skills coexist.
+- **Chưa đo (ghi trung thực):** harness recall MEMORY.md-vs-thư-mục (§5.6) · MEMORY.md-stub chấp nhận? · `claude -p` exit-code (R12) · **tỉ lệ auto-formalize-được trên corpus mồi (R13)** · số/nhận-định thị trường (§1.6/§3).
+- **Việc số 1 (dogfood):** V3-lite (§17) — viết lời 121 CHECK + DB-per-project + MUA code-graph + 2 tool + guard, **đo verdict 20%→? sau 20 task**. Đồng thời gieo **corpus mồi** (rule→probe→outcome của sicp) = phôi của proof-engine.
+- **Chương trình dài (sản phẩm):** proof-engine (auto-formalize→auto-proof→certificate §21) + qualification — dựng TRÊN nền dogfood, khác nhịp thời gian.
+
+**⟹ SẴN SÀNG triển khai V3-lite (dogfood). Ngách + kiếm-tiền + bí-mật đã [DECIDED] (§00/§22.2) — KHÔNG còn quyết định treo. Bước kế của SẢN PHẨM: đo tỉ lệ formal-hoá-được (R13) trên corpus mồi, tìm design-partner Tier-1/2.**
